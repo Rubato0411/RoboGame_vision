@@ -1,0 +1,18 @@
+{
+  "family": "tag36h11",
+  "allowed_ids": [1, 2, 3, 4, 5, 6],
+  "tag_size_m": 0.15,
+  "upper_edge_height_m": 0.40,
+  "adaptive_thresh_win_size_min": 3,
+  "adaptive_thresh_win_size_max": 23,
+  "adaptive_thresh_win_size_step": 10,
+  "adaptive_thresh_constant": 7.0,
+  "min_marker_perimeter_rate": 0.03,
+  "max_marker_perimeter_rate": 4.0,
+  "polygonal_approx_accuracy_rate": 0.03,
+  "corner_refinement": "subpix",
+  "corner_refinement_win_size": 5,
+  "corner_refinement_max_iterations": 30,
+  "corner_refinement_min_accuracy": 0.01,
+  "error_correction_rate": 0.6
+}

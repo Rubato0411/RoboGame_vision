@@ -1,0 +1,32 @@
+{
+  "description": "Measure every slot relative to the effective center and axes of its reference AprilTag. Values below are disabled placeholders.",
+  "slots": [
+    {
+      "slot_id": "base_left",
+      "configured": false,
+      "reference_tag_id": 1,
+      "translation_tag_m": [0.0, 0.0, 0.0],
+      "rpy_tag_deg": [0.0, 0.0, 0.0],
+      "layer": 0,
+      "priority": 0
+    },
+    {
+      "slot_id": "base_right",
+      "configured": false,
+      "reference_tag_id": 1,
+      "translation_tag_m": [0.0, 0.0, 0.0],
+      "rpy_tag_deg": [0.0, 0.0, 0.0],
+      "layer": 0,
+      "priority": 1
+    },
+    {
+      "slot_id": "top_center",
+      "configured": false,
+      "reference_tag_id": 1,
+      "translation_tag_m": [0.0, 0.0, 0.15],
+      "rpy_tag_deg": [0.0, 0.0, 0.0],
+      "layer": 1,
+      "priority": 0
+    }
+  ]
+}

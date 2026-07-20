@@ -1,0 +1,14 @@
+{
+  "description": "Active placement configuration. Measure slot transforms relative to the building-zone AprilTag before setting configured=true.",
+  "slots": [
+    {"slot_id": "base_left", "configured": false, "reference_tag_id": 1,
+     "translation_tag_m": [0.0, 0.0, 0.0], "rpy_tag_deg": [0.0, 0.0, 0.0],
+     "layer": 0, "priority": 0},
+    {"slot_id": "base_right", "configured": false, "reference_tag_id": 1,
+     "translation_tag_m": [0.0, 0.0, 0.0], "rpy_tag_deg": [0.0, 0.0, 0.0],
+     "layer": 0, "priority": 1},
+    {"slot_id": "top_center", "configured": false, "reference_tag_id": 1,
+     "translation_tag_m": [0.0, 0.0, 0.15], "rpy_tag_deg": [0.0, 0.0, 0.0],
+     "layer": 1, "priority": 0}
+  ]
+}

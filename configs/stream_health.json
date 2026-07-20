@@ -1,0 +1,14 @@
+{
+  "expected_fps": 30.0,
+  "minimum_fps_ratio": 0.5,
+  "fps_window_frames": 30,
+  "startup_grace_frames": 10,
+  "frame_timeout_s": 1.0,
+  "disconnect_timeout_s": 3.0,
+  "max_consecutive_failures": 3,
+  "freeze_threshold": 0.35,
+  "freeze_timeout_s": 2.0,
+  "thumbnail_width": 64,
+  "thumbnail_height": 36,
+  "recovery_frames": 10
+}

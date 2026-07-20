@@ -1,0 +1,22 @@
+{
+  "orange": {
+    "hsv_lower": [5, 100, 70],
+    "hsv_upper": [25, 255, 255],
+    "draw_color_bgr": [0, 165, 255]
+  },
+  "purple": {
+    "hsv_lower": [125, 55, 45],
+    "hsv_upper": [165, 255, 255],
+    "draw_color_bgr": [255, 0, 180]
+  },
+  "blur_kernel": 5,
+  "morph_kernel": 5,
+  "open_iterations": 1,
+  "close_iterations": 2,
+  "min_area_px": 500,
+  "max_area_ratio": 0.7,
+  "min_aspect_ratio": 0.45,
+  "max_aspect_ratio": 2.2,
+  "min_rectangularity": 0.55,
+  "min_solidity": 0.75
+}

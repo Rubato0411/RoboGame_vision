@@ -1,0 +1,8 @@
+{
+  "confirmation_hits": 3,
+  "max_missed_frames": 5,
+  "smoothing_alpha": 0.35,
+  "max_center_jump_px": 180.0,
+  "min_iou_for_blocks": 0.0,
+  "show_tentative": false
+}

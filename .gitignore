@@ -1,0 +1,126 @@
+# -----------------------------------------------------------------------------
+# Python bytecode, test caches and reports
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# -----------------------------------------------------------------------------
+# Local Python / Conda environments
+# The project environment currently lives at D:\conda_envs\rg_vision and must
+# never be copied into this repository.
+# -----------------------------------------------------------------------------
+.venv/
+venv/
+env/
+ENV/
+.conda/
+conda-meta/
+pip-wheel-metadata/
+*.egg-info/
+dist/
+
+# -----------------------------------------------------------------------------
+# IDE and operating-system files
+# -----------------------------------------------------------------------------
+.vscode/settings.json
+.vscode/*.log
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# Codex / agent-local metadata
+.agents/
+.codex/
+
+# -----------------------------------------------------------------------------
+# Runtime output, screenshots, recordings and logs
+# -----------------------------------------------------------------------------
+captures/
+recordings/
+outputs/
+logs/
+log/
+backups/
+*.log
+*.jsonl
+*.rg
+
+# Accidental CLI artifact currently present at the repository root
+/--source
+
+# -----------------------------------------------------------------------------
+# Raw/private datasets and generated evaluation data
+# Keep small, deliberately selected sample images only when they are useful for
+# reproducible tests. Do not commit competition recordings containing people.
+# -----------------------------------------------------------------------------
+data/raw/
+data/private/
+data/block_baseline/
+data/calibration/captures/
+data/**/*_detected.jpg
+data/**/*_robust.jpg
+data/**/*_result.jpg
+
+# Video and camera recording formats are usually too large for normal Git.
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.m4v
+
+# -----------------------------------------------------------------------------
+# Machine-specific calibration and installation geometry
+# Commit sanitized *.example.json templates instead.
+# -----------------------------------------------------------------------------
+configs/camera_calibration*.json
+configs/*_camera_calibration.json
+configs/coordinate_frames.json
+configs/multi_camera.json
+configs/*.local.json
+
+# -----------------------------------------------------------------------------
+# Generated calibration/document artifacts
+# -----------------------------------------------------------------------------
+/chessboard.docx
+data/calibration/generated/
+
+# -----------------------------------------------------------------------------
+# Model weights and accelerator binaries: use Git LFS if they are intentionally
+# shared later.
+# -----------------------------------------------------------------------------
+*.pt
+*.pth
+*.onnx
+*.engine
+*.tflite
+
+# -----------------------------------------------------------------------------
+# ROS / ROS 2 build products, if a ROS wrapper is added later
+# -----------------------------------------------------------------------------
+build/
+install/
+.colcon/
+
+# -----------------------------------------------------------------------------
+# Secrets and local environment variables
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
