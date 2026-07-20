@@ -154,6 +154,15 @@ class BlackLineDetector:
         center_x = float(slope * reference_y + intercept)
         reference_x = ox + width * self.config.center_reference_ratio
         offset = center_x - reference_x
+        normalized_offset = offset / (width / 2)
+        # A fitted steering point outside the image is an extrapolation, not an
+        # observed line. Reject it instead of forwarding an unbounded command.
+        if not np.isfinite(normalized_offset) or abs(normalized_offset) > 1.0:
+            return BlackLineDetection(
+                False, None, None, None, None, 0.0, tuple(map(tuple, array)),
+                valid, len(rows), wide_rows > 0, roi_px,
+                self._full_mask(mask, image_bgr.shape[:2], roi_px),
+            )
         x_top = float(slope * array[:, 1].min() + intercept)
         x_bottom = float(slope * array[:, 1].max() + intercept)
         vertical = max(float(array[:, 1].max() - array[:, 1].min()), 1.0)
@@ -163,7 +172,7 @@ class BlackLineDetector:
         straightness = float(np.exp(-residual / max(width*.03, 1.0)))
         confidence = float(np.clip(.7*coverage + .3*straightness, 0, 1))
         return BlackLineDetection(
-            True, (center_x, reference_y), offset, offset/(width/2), heading,
+            True, (center_x, reference_y), offset, normalized_offset, heading,
             confidence, tuple(map(tuple, array)), valid, len(rows), wide_rows > 0,
             roi_px, self._full_mask(mask, image_bgr.shape[:2], roi_px),
         )

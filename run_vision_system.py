@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 
 from src.image_source import CameraConfig, ImageSource
+from src.communication_runtime import PiCommunicationRuntime, SerialByteStream
 from src.raspberry_pi_endpoint import RaspberryPiVisionEndpoint
 from src.vision_output import VisionMode, VisionOutput
 from src.vision_pipeline import VisionPipeline, VisionPipelinePaths
@@ -77,6 +78,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Unified RoboGame vision system")
     parser.add_argument("--source", required=True, help="Image/video path or camera index")
     parser.add_argument("--mode", choices=[item.value for item in VisionMode], default="IDLE")
+    parser.add_argument("--target-color", choices=["orange", "purple"], default="orange",
+                        help="Requested block color in GRAB_ASSIST mode")
     parser.add_argument("--calibration", help="Camera intrinsic calibration JSON")
     parser.add_argument("--coordinates", help="Configured coordinate_frames JSON")
     parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2"], default="auto")
@@ -90,6 +93,9 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Repeat still images for temporal confirmation")
     parser.add_argument("--jsonl", help="Write one VisionOutput JSON per line")
     parser.add_argument("--protocol-output", help="Write framed protocol bytes for transport tests")
+    parser.add_argument("--serial-port", help="Optional wired lower-controller serial device")
+    parser.add_argument("--serial-baud", type=int, default=921600)
+    parser.add_argument("--heartbeat-interval", type=float, default=1.0)
     parser.add_argument("--record", help="Write annotated MP4")
     parser.add_argument("--save-last", help="Save the final annotated frame")
     parser.add_argument("--no-display", action="store_true")
@@ -106,12 +112,18 @@ def main() -> int:
         parser.error("--calibration and --coordinates must be supplied together")
     positive = (args.width, args.height, args.fps, args.still_repeats,
                 args.display_width, args.display_height)
-    if any(value <= 0 for value in positive) or args.max_frames < 0:
+    if (any(value <= 0 for value in positive) or args.max_frames < 0 or
+            args.serial_baud <= 0 or args.heartbeat_interval <= 0):
         parser.error("dimensions/fps/repeats must be positive and max-frames cannot be negative")
 
     pipeline = VisionPipeline.from_paths(
         VisionPipelinePaths.project_defaults(ROOT), args.calibration, args.coordinates)
     endpoint = RaspberryPiVisionEndpoint(VisionMode(args.mode))
+    communication = None
+    if args.serial_port:
+        communication = PiCommunicationRuntime(
+            SerialByteStream(args.serial_port, args.serial_baud), endpoint,
+            args.heartbeat_interval)
     camera = CameraConfig(width=args.width, height=args.height, fps=args.fps,
                           backend=args.backend, fourcc=args.fourcc)
     processed, latest, writer = 0, None, None
@@ -122,16 +134,21 @@ def main() -> int:
             protocol_file = stack.enter_context(open(args.protocol_output, "wb")) if args.protocol_output else None
             source = stack.enter_context(ImageSource(parse_source(args.source), camera, args.loop))
             while True:
+                if communication is not None:
+                    communication.poll()
                 packet = source.read()
                 if packet is None:
                     break
-                output = pipeline.process(packet, endpoint.mode)
+                output = pipeline.process(
+                    packet, endpoint.mode, desired_block_color=args.target_color)
                 if json_file:
                     json_file.write(output.to_json() + "\n")
                     json_file.flush()
                 if protocol_file:
                     protocol_file.write(endpoint.encode_vision(output))
                     protocol_file.flush()
+                if communication is not None:
+                    communication.publish_vision(output)
                 latest = annotate_output(packet.image, output)
                 if args.record and writer is None:
                     path = Path(args.record)
@@ -164,6 +181,8 @@ def main() -> int:
     finally:
         if writer is not None:
             writer.release()
+        if communication is not None:
+            communication.close()
         cv2.destroyAllWindows()
 
     if args.save_last and latest is not None:

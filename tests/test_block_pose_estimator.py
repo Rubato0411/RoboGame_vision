@@ -28,5 +28,19 @@ class BlockPoseEstimatorTests(unittest.TestCase):
         self.assertAlmostEqual(result.center_robot_m[2], .075, places=6)
         self.assertAlmostEqual(result.grasp_point_robot_m[2], .15, places=6)
 
+    def test_default_cube_size_matches_2026_ten_centimetre_rule(self):
+        calibration = CalibrationResult(
+            640, 480, np.array([[500., 0., 320.], [0., 500., 240.], [0., 0., 1.]]),
+            np.zeros(5), 0, 0, (), (), (), ChessboardSpec())
+        robot_camera = RigidTransform(rotation_from_rpy(180, 0, 0, degrees=True), [0, 0, 1])
+        transformer = CoordinateTransformer(calibration, robot_camera, {})
+        detection = BlockDetection(
+            "orange", (320, 220), (270, 140, 100, 101),
+            ((270, 140), (370, 140), (370, 241), (270, 241)),
+            0, 10000, 1, 1, 1, 1, .9, False)
+        result = BlockPoseEstimator(transformer).estimate(detection)
+        self.assertAlmostEqual(result.center_robot_m[2], .05, places=6)
+        self.assertAlmostEqual(result.grasp_point_robot_m[2], .10, places=6)
+
 
 if __name__ == "__main__": unittest.main()

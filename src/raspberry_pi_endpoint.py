@@ -45,6 +45,10 @@ class RaspberryPiVisionEndpoint:
                    "mode": self.mode.value}
         return encode_json_packet(MessageType.HEARTBEAT, self._next_sequence(), payload)
 
+    def encode_competition_command(self, command: Mapping) -> bytes:
+        return encode_json_packet(
+            MessageType.COMPETITION_COMMAND, self._next_sequence(), dict(command))
+
     def feed_received(self, data: bytes) -> EndpointReceiveResult:
         events, responses = [], []
         for packet in self.decoder.feed(data):
@@ -61,6 +65,12 @@ class RaspberryPiVisionEndpoint:
                 elif packet.message_type == MessageType.HEARTBEAT:
                     events.append(EndpointEvent("heartbeat", packet.sequence, payload))
                     responses.append(self._ack(packet, True, "heartbeat"))
+                elif packet.message_type == MessageType.ROBOT_FEEDBACK:
+                    events.append(EndpointEvent("robot_feedback", packet.sequence, payload))
+                    responses.append(self._ack(packet, True, "robot_feedback"))
+                elif packet.message_type == MessageType.START_SIGNAL:
+                    events.append(EndpointEvent("start_signal", packet.sequence, payload))
+                    responses.append(self._ack(packet, True, "start_signal"))
                 else:
                     events.append(EndpointEvent("unexpected_message", packet.sequence, payload))
                     responses.append(self._ack(packet, False, "unsupported message for Pi endpoint"))

@@ -131,7 +131,8 @@ class CoordinateTransformer:
         self.transforms_field_tag = dict(transforms_field_tag)
 
     @classmethod
-    def from_json(cls, calibration_path: str | Path, geometry_path: str | Path):
+    def from_json(cls, calibration_path: str | Path, geometry_path: str | Path,
+                  require_field_tags: bool = True):
         calibration = CalibrationResult.load_json(calibration_path)
         raw = json.loads(Path(geometry_path).read_text(encoding="utf-8"))
         camera = raw["robot_from_camera"]
@@ -144,7 +145,7 @@ class CoordinateTransformer:
             if value.get("configured", False):
                 tags[int(key)] = RigidTransform.from_xyz_rpy(
                     value["translation_m"], value["rpy_deg"], degrees=True)
-        if not tags:
+        if require_field_tags and not tags:
             raise ValueError("no field tag poses are configured")
         return cls(calibration, transform_robot_camera, tags)
 

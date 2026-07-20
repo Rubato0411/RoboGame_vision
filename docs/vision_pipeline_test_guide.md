@@ -135,7 +135,7 @@ python tools\run_pipeline_offline.py `
 
 JSONL 每行是一帧。重点检查：
 
-- `schema_version` 是否为 `1.0`
+- `schema_version` 是否为 `1.2`
 - `frame_id` 是否递增
 - `timestamp_s` 是否递增
 - `stream.status` 是否合理

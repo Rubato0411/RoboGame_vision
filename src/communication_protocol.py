@@ -19,6 +19,9 @@ class MessageType(IntEnum):
     VISION_OUTPUT = 0x01
     HEARTBEAT = 0x02
     MODE_COMMAND = 0x10
+    ROBOT_FEEDBACK = 0x11
+    START_SIGNAL = 0x12
+    COMPETITION_COMMAND = 0x20
     ACK = 0x7E
     ERROR = 0x7F
 

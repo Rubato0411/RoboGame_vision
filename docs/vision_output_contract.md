@@ -1,4 +1,4 @@
-# 统一视觉输出数据合同 v1.1
+# 统一视觉输出数据合同 v1.2
 
 ## 边界
 
@@ -20,6 +20,9 @@ VisionOutput
 - `LOCALIZATION`：AprilTag检测、连续跟踪和可选全局定位。
 - `FIND_BLOCKS`：方块检测、连续跟踪和可选机器人坐标转换。
 - `FOLLOW_LINE`：黑线检测。
+- `GRAB_ASSIST`：按请求的橙/紫颜色选择方块并输出夹爪对准量。
+- `PLACE_ASSIST`：根据已测槽位和占用状态输出下一放置目标。
+- `SAFE_STOP`：不运行目标算法，只保留流健康检查。
 - `DEBUG_ALL`：同时运行所有算法，仅用于调试和性能测试。
 
 ## 单位和约定
@@ -39,7 +42,7 @@ VisionOutput
 
 ```json
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "valid": true,
   "frame_id": 123,
   "timestamp_s": 15.42,
@@ -56,6 +59,11 @@ VisionOutput
 ```
 
 通信层以后只能编码这些公开字段，不应直接序列化检测器内部对象。协议增加字段时应提升 schema 版本并保持兼容。
+
+v1.2在每个`blocks[]`元素中新增：
+
+- `grasp_point_robot_m`：规则尺寸和支撑平面约束得到的方块顶面抓取点；未标定时为`null`。
+- `yaw_image_deg`：方块在图像中的旋转矩形角度，仅作对准初值。
 
 ## 安全规则
 

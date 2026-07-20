@@ -14,7 +14,7 @@ class VisionOutputTests(unittest.TestCase):
         output = VisionOutput(7, 12.5, "test", VisionMode.IDLE.value,
                               StreamOutput("HEALTHY", True, 30, 0, 0, "ok"))
         data = json.loads(output.to_json())
-        self.assertEqual(data["schema_version"], "1.1")
+        self.assertEqual(data["schema_version"], "1.2")
         self.assertTrue(data["valid"])
         self.assertEqual(data["frame_id"], 7)
 

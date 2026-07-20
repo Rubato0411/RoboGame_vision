@@ -42,6 +42,9 @@
 - `0x01`：VisionOutput
 - `0x02`：Heartbeat
 - `0x10`：ModeCommand
+- `0x11`：RobotFeedback（下位机到树莓派）
+- `0x12`：StartSignal（车载启动信号）
+- `0x20`：CompetitionCommand（树莓派到下位机的语义动作指令）
 - `0x7E`：ACK
 - `0x7F`：Error
 
@@ -83,15 +86,42 @@ python tools\simulate_communication.py `
 
 `chunk-size=7`故意把数据包切成很多小块，模拟串口一次读取不到完整包。解码器仍应恢复出一个完整消息，并且CRC错误为0。
 
-## 6. 尚未绑定的硬件
+## 6. 比赛闭环消息
+
+`RobotFeedback`当前支持以下布尔字段；未确认的字段必须发送为`false`，不能省略后由上位机猜测成功：
+
+```json
+{
+  "e_stop_active": false,
+  "lower_controller_healthy": true,
+  "fault_detected": false,
+  "at_material_zone": false,
+  "at_build_zone": false,
+  "grasp_confirmed": false,
+  "place_pose_reached": false,
+  "release_confirmed": false,
+  "target_in_slot": false,
+  "structure_stable": false,
+  "robot_in_start_zone": false,
+  "recovery_acknowledged": false
+}
+```
+
+`CompetitionCommand`包含比赛阶段、视觉模式、运动意图、夹爪意图、目标颜色、搭建槽位、比赛计时和
+安全停车标志。运动意图是语义命令，不是未经限幅的电机PWM。
+
+`communication_runtime.py`已经提供非阻塞pyserial读写、ACK、心跳和完整写入循环。实际串口名、
+波特率及超时从`hardware_measurements.json`读取。正式比赛中该控制链路应为车内有线链路；无线端
+只能接收监控信息。
+
+## 7. 尚未绑定的硬件
 
 当前没有加入：
 
-- 串口名称和波特率
-- pyserial读写循环
 - RS485方向控制
 - CAN ID分配
 - CAN分片
 - STM32 C语言解析器
 
-这些需要控制组确认物理链路后实现。协议核心、CRC、序号、命令和超时逻辑现在已经可以独立测试。
+这些需要控制组确认物理链路后实现。串口运行层、协议核心、CRC、序号、命令和超时逻辑现在已经
+可以独立测试，但硬件安全停车仍必须由下位机独立保证。

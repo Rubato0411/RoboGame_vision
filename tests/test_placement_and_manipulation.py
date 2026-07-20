@@ -32,6 +32,19 @@ class PlacementAndManipulationTests(unittest.TestCase):
                                       np.zeros(3), np.ones(3), 1, .2)
         self.assertFalse(locator.select_next([detection], RigidTransform.identity(), ["base"]).valid)
 
+    def test_priority_completes_one_building_before_next(self):
+        slots = [
+            PlacementSlot("building_2_layer_1", 4, RigidTransform.identity(), 1, 1),
+            PlacementSlot("building_1_layer_2", 4, RigidTransform.identity(), 2, 0),
+            PlacementSlot("building_1_layer_1", 4, RigidTransform.identity(), 1, 0),
+        ]
+        locator = PlacementTagLocator(slots)
+        detection = AprilTagDetection(4, ((0, 0),)*4, (0, 0), 1, 1,
+                                      np.zeros(3), np.ones(3), 1, .2)
+        targets = locator.locate([detection], RigidTransform.identity())
+        self.assertEqual([item.slot_id for item in targets], [
+            "building_1_layer_1", "building_1_layer_2", "building_2_layer_1"])
+
     def test_grasp_requires_sensor_and_visual_motion(self):
         verifier = ManipulationVerifier()
         incomplete = verifier.verify(ManipulationPhase.VERIFY_GRASP,

@@ -44,6 +44,12 @@ class PlacementTagLocator:
         for item in raw.get("slots", []):
             if not item.get("configured", False):
                 continue
+            required = ("reference_tag_id", "translation_tag_m", "rpy_tag_deg")
+            missing = [name for name in required if item.get(name) is None]
+            if missing:
+                raise ValueError(
+                    f"configured placement slot {item.get('slot_id', '<unknown>')} "
+                    f"is missing measured values: {', '.join(missing)}")
             slots.append(PlacementSlot(
                 str(item["slot_id"]), int(item["reference_tag_id"]),
                 RigidTransform.from_xyz_rpy(item["translation_tag_m"], item["rpy_tag_deg"]),
@@ -58,7 +64,9 @@ class PlacementTagLocator:
                     if item.rvec is not None and item.tvec_m is not None}
         occupied = set(occupied_slot_ids)
         targets = []
-        for slot in sorted(self.slots, key=lambda value: (value.layer, value.priority, value.slot_id)):
+        # Priority groups one building; layer order then completes that building
+        # before starting the next one, matching the orange-orange-roof strategy.
+        for slot in sorted(self.slots, key=lambda value: (value.priority, value.layer, value.slot_id)):
             if slot.slot_id in occupied or slot.reference_tag_id not in observed:
                 continue
             detection = observed[slot.reference_tag_id]

@@ -30,10 +30,14 @@ class TargetSelector:
     def __init__(self, config: TargetSelectionConfig) -> None:
         self.config = config
 
-    def select(self, blocks: Iterable[BlockOutput], image_width: int = 1280) -> TargetSelection:
+    def select(self, blocks: Iterable[BlockOutput], image_width: int = 1280,
+               desired_color: str | None = None) -> TargetSelection:
+        selected_color = (desired_color or self.config.desired_color).lower()
+        if selected_color not in ("orange", "purple"):
+            raise ValueError(f"unsupported desired block color: {selected_color}")
         scored = []
         for block in blocks:
-            if block.color != self.config.desired_color or not block.valid:
+            if block.color != selected_color or not block.valid:
                 continue
             if block.confidence < self.config.minimum_confidence:
                 continue

@@ -1,0 +1,165 @@
+{
+  "schema_version": "1.0",
+  "status": "NOT_MEASURED",
+  "instructions": "Only replace null after measuring on the final robot. Set verified flags and status=MEASURED_AND_VERIFIED only after the acceptance tests pass.",
+  "rule_locked": {
+    "block_edge_m": 0.10,
+    "block_size_tolerance_ratio": 0.05,
+    "orange_slot_width_m": 0.11,
+    "purple_slot_width_m": 0.11,
+    "line_width_m": 0.05,
+    "tag_edge_m": 0.15,
+    "tag_upper_edge_height_m": 0.40
+  },
+  "platform": {
+    "verified": false,
+    "board": "Raspberry Pi 5B 8GB",
+    "os_release": null,
+    "kernel_version": null,
+    "python_version": null,
+    "opencv_version": null,
+    "numpy_version": null,
+    "cooling_solution": null,
+    "power_supply_model": null,
+    "sustained_cpu_temperature_c": null,
+    "thermal_throttling_observed": null
+  },
+  "cameras": {
+    "verified": false,
+    "front": {
+      "model": null,
+      "serial_number": null,
+      "device_path": null,
+      "calibration_file": null,
+      "coordinate_geometry_file": null,
+      "backend": "v4l2",
+      "requested_width_px": 1280,
+      "requested_height_px": 720,
+      "requested_fps": 30.0,
+      "requested_fourcc": "MJPG",
+      "actual_width_px": null,
+      "actual_height_px": null,
+      "actual_fps": null,
+      "actual_fourcc": null,
+      "buffer_size": 1,
+      "exposure": null,
+      "gain": null,
+      "white_balance": null,
+      "focus": null,
+      "intrinsics": {
+        "camera_matrix": null,
+        "distortion_coefficients": null,
+        "reprojection_error_px": null,
+        "calibration_image_count": null
+      },
+      "robot_from_camera": {
+        "translation_m": null,
+        "rpy_deg": null,
+        "measurement_uncertainty_m": null,
+        "measurement_uncertainty_deg": null
+      }
+    },
+    "gripper": {
+      "required": true,
+      "model": null,
+      "serial_number": null,
+      "device_path": null,
+      "calibration_file": null,
+      "coordinate_geometry_file": null,
+      "backend": "v4l2",
+      "requested_width_px": 1280,
+      "requested_height_px": 720,
+      "requested_fps": 30.0,
+      "requested_fourcc": "MJPG",
+      "actual_width_px": null,
+      "actual_height_px": null,
+      "actual_fps": null,
+      "actual_fourcc": null,
+      "exposure": null,
+      "gain": null,
+      "white_balance": null,
+      "focus": null,
+      "intrinsics": {
+        "camera_matrix": null,
+        "distortion_coefficients": null,
+        "reprojection_error_px": null
+      },
+      "robot_from_camera": {
+        "translation_m": null,
+        "rpy_deg": null
+      },
+      "grasp_reference_px": null,
+      "alignment_tolerance_px": null,
+      "alignment_tolerance_deg": null
+    },
+    "dual_camera_validation": {
+      "usb_controller_mapping": null,
+      "simultaneous_front_fps": null,
+      "simultaneous_gripper_fps": null,
+      "dropped_frame_ratio": null,
+      "continuous_test_duration_min": null
+    }
+  },
+  "field_tags": {
+    "verified": false,
+    "coordinate_origin_description": null,
+    "axis_convention": null,
+    "1": {"field_from_tag": {"translation_m": null, "rpy_deg": null}},
+    "2": {"field_from_tag": {"translation_m": null, "rpy_deg": null}},
+    "3": {"field_from_tag": {"translation_m": null, "rpy_deg": null}},
+    "4": {"field_from_tag": {"translation_m": null, "rpy_deg": null}},
+    "5": {"field_from_tag": {"translation_m": null, "rpy_deg": null}},
+    "6": {"field_from_tag": {"translation_m": null, "rpy_deg": null}}
+  },
+  "placement": {
+    "verified": false,
+    "building_zone_reference_tag_id": null,
+    "slot_transforms_tag_m": null,
+    "approach_offset_m": null,
+    "release_offset_m": null,
+    "layer_height_m_measured": null,
+    "stable_observation_roi": null
+  },
+  "lower_controller": {
+    "verified": false,
+    "transport": null,
+    "device": null,
+    "baudrate": null,
+    "protocol_version": 1,
+    "feedback_rate_hz": null,
+    "command_rate_hz": null
+  },
+  "safety": {
+    "verified": false,
+    "heartbeat_timeout_s": null,
+    "command_timeout_s": null,
+    "physical_estop_cuts_all_actuators": null,
+    "camera_failure_safe_stop_tested": null,
+    "vision_process_crash_safe_stop_tested": null,
+    "communication_loss_safe_stop_tested": null
+  },
+  "performance": {
+    "verified": false,
+    "resolution": null,
+    "single_camera_pipeline_p50_ms": null,
+    "single_camera_pipeline_p95_ms": null,
+    "single_camera_pipeline_p99_ms": null,
+    "dual_camera_pipeline_p95_ms": null,
+    "end_to_end_control_latency_p95_ms": null,
+    "continuous_run_duration_min": null,
+    "peak_memory_mb": null
+  },
+  "vision_acceptance": {
+    "verified": false,
+    "orange_precision": null,
+    "orange_recall": null,
+    "purple_precision": null,
+    "purple_recall": null,
+    "line_loss_rate": null,
+    "tag_pose_translation_error_m": null,
+    "tag_pose_yaw_error_deg": null,
+    "grasp_success_rate": null,
+    "placement_success_rate": null,
+    "three_second_stability_detection_accuracy": null
+  }
+}

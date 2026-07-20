@@ -1,6 +1,10 @@
 <<<<<<< HEAD
 # RoboGame 视觉输入程序
 
+> 正式比赛入口与硬件参数说明：
+> `run_competition_system.py`、`configs/hardware_measurements.json`、
+> `docs/hardware_measurement_checklist.md`。硬件参数未实测时，正式入口会拒绝启动。
+
 项目提供统一的图片、视频和USB/UVC摄像头输入接口。检测算法始终从 `FramePacket.image` 获取图像，因此从离线视频切换到真实机器人摄像头时不需要重写检测器。
 
 ## 环境

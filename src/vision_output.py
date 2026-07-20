@@ -7,7 +7,7 @@ import math
 from typing import Any
 
 
-SCHEMA_VERSION = "1.1"
+SCHEMA_VERSION = "1.2"
 
 
 class VisionMode(str, Enum):
@@ -65,6 +65,8 @@ class BlockOutput:
     bbox_px: tuple[int, int, int, int]
     position_robot_m: tuple[float, float, float] | None
     confidence: float
+    grasp_point_robot_m: tuple[float, float, float] | None = None
+    yaw_image_deg: float | None = None
 
 
 @dataclass(frozen=True)

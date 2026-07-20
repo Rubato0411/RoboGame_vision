@@ -28,6 +28,20 @@ class GripperAndTargetTests(unittest.TestCase):
         self.assertTrue(result.valid)
         self.assertEqual(result.track_id, 2)
 
+    def test_target_selector_can_request_purple_at_runtime(self):
+        blocks = [
+            BlockOutput(1, "purple", True, False, (640, 300), (0, 0, 10, 10), None, .90),
+            BlockOutput(2, "orange", True, False, (640, 300), (0, 0, 10, 10), None, .99),
+        ]
+        result = TargetSelector(TargetSelectionConfig()).select(
+            blocks, desired_color="purple")
+        self.assertTrue(result.valid)
+        self.assertEqual(result.track_id, 1)
+
+    def test_target_selector_rejects_unknown_color(self):
+        with self.assertRaises(ValueError):
+            TargetSelector(TargetSelectionConfig()).select([], desired_color="blue")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -21,7 +21,7 @@ class BlockPoseEstimate:
 class BlockPoseEstimator:
     """Estimate a cube center from its image contact point and a support plane."""
 
-    def __init__(self, coordinates: CoordinateTransformer, cube_size_m: float = 0.15,
+    def __init__(self, coordinates: CoordinateTransformer, cube_size_m: float = 0.10,
                  support_plane_height_m: float = 0.0) -> None:
         if cube_size_m <= 0:
             raise ValueError("cube_size_m must be positive")

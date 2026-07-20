@@ -38,7 +38,7 @@ class VisionPipelineTests(unittest.TestCase):
         self.assertEqual(output.tags, ())
         self.assertEqual(output.blocks, ())
         self.assertFalse(output.line.valid)
-        self.assertIn('"schema_version":"1.1"', output.to_json())
+        self.assertIn('"schema_version":"1.2"', output.to_json())
 
     def test_find_blocks_outputs_stable_block(self):
         image = np.full((480, 640, 3), 180, np.uint8)

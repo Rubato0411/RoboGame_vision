@@ -9,6 +9,7 @@ import numpy as np
 from .apriltag_detector import AprilTagDetector
 from .black_line_detector import BlackLineDetector
 from .block_detector_robust import BlockDetector
+from .block_pose_estimator import BlockPoseEstimator
 from .coordinate_transform import CoordinateTransformer
 from .gripper_alignment import GripperAligner
 from .image_source import FramePacket
@@ -60,7 +61,8 @@ class VisionPipeline:
                  coordinates: CoordinateTransformer | None = None,
                  target_selector: TargetSelector | None = None,
                  gripper_aligner: GripperAligner | None = None,
-                 placement_locator: PlacementTagLocator | None = None) -> None:
+                 placement_locator: PlacementTagLocator | None = None,
+                 block_pose_estimator: BlockPoseEstimator | None = None) -> None:
         self.apriltags = apriltags
         self.blocks = blocks
         self.line = line
@@ -71,15 +73,19 @@ class VisionPipeline:
         self.target_selector = target_selector or TargetSelector(TargetSelectionConfig())
         self.gripper_aligner = gripper_aligner
         self.placement_locator = placement_locator
+        self.block_pose_estimator = block_pose_estimator
 
     @classmethod
     def from_paths(cls, paths: VisionPipelinePaths,
                    calibration_path: str | Path | None = None,
-                   coordinate_geometry_path: str | Path | None = None) -> "VisionPipeline":
+                   coordinate_geometry_path: str | Path | None = None,
+                   require_field_tags: bool = True) -> "VisionPipeline":
         apriltags = AprilTagDetector.from_json(paths.apriltag_config, calibration_path)
         coordinates = None
         if calibration_path and coordinate_geometry_path:
-            coordinates = CoordinateTransformer.from_json(calibration_path, coordinate_geometry_path)
+            coordinates = CoordinateTransformer.from_json(
+                calibration_path, coordinate_geometry_path, require_field_tags)
+        block_pose_estimator = BlockPoseEstimator(coordinates) if coordinates is not None else None
         return cls(
             apriltags, BlockDetector.from_json(paths.block_config),
             BlackLineDetector.from_json(paths.line_config),
@@ -89,13 +95,16 @@ class VisionPipeline:
             TargetSelector(TargetSelectionConfig()),
             GripperAligner.from_json(paths.gripper_alignment_config),
             PlacementTagLocator.from_json(paths.placement_slots_config),
+            block_pose_estimator,
         )
 
     def reset(self) -> None:
         self.tag_tracker.reset()
         self.block_tracker.reset()
 
-    def process(self, packet: FramePacket, mode: VisionMode | str = VisionMode.DEBUG_ALL) -> VisionOutput:
+    def process(self, packet: FramePacket, mode: VisionMode | str = VisionMode.DEBUG_ALL,
+                desired_block_color: str | None = None,
+                occupied_slot_ids: tuple[str, ...] = ()) -> VisionOutput:
         started = perf_counter()
         selected_mode = VisionMode(mode)
         errors: list[str] = []
@@ -143,7 +152,8 @@ class VisionPipeline:
                 temporal = self.block_tracker.update(observations_from_blocks(raw.detections))
                 block_outputs = tuple(self._block_output(track, errors) for track in temporal.tracks)
                 if selected_mode in (VisionMode.GRAB_ASSIST, VisionMode.DEBUG_ALL):
-                    selection = self.target_selector.select(block_outputs, packet.image.shape[1])
+                    selection = self.target_selector.select(
+                        block_outputs, packet.image.shape[1], desired_block_color)
                     selected_output = SelectedTargetOutput(
                         selection.valid, selection.track_id, selection.score, selection.reason)
                     if selection.valid and self.gripper_aligner is not None:
@@ -193,7 +203,7 @@ class VisionPipeline:
             try:
                 target = self.placement_locator.select_next(
                     [track.detection for track in stable_tags if not track.predicted],
-                    self.coordinates.transform_robot_camera)
+                    self.coordinates.transform_robot_camera, occupied_slot_ids)
                 placement_output = PlacementOutput(
                     target.valid, target.slot_id, target.reference_tag_id,
                     target.position_robot_m, target.rpy_robot_deg, target.layer, target.reason)
@@ -229,15 +239,18 @@ class VisionPipeline:
     def _block_output(self, track, errors: list[str]) -> BlockOutput:
         item = track.detection
         position = None
-        if self.coordinates is not None and not track.predicted:
-            try:
-                point = self.coordinates.pixel_to_plane(
-                    track.center_px, self.coordinates.transform_robot_camera)
-                position = tuple(float(v) for v in point)
-            except ValueError as exc:
-                errors.append(f"block track {track.track_id} coordinates: {exc}")
+        grasp_point = None
+        yaw_image_deg = None
+        if self.block_pose_estimator is not None and not track.predicted:
+            estimate = self.block_pose_estimator.estimate(item)
+            if estimate.valid:
+                position = estimate.center_robot_m
+                grasp_point = estimate.grasp_point_robot_m
+                yaw_image_deg = estimate.yaw_image_deg
+            else:
+                errors.append(f"block track {track.track_id} coordinates: {estimate.reason}")
         return BlockOutput(
             track.track_id, item.class_name, track.confirmed, track.predicted,
             tuple(float(v) for v in track.center_px), tuple(int(v) for v in item.bbox),
-            position, float(item.confidence),
+            position, float(item.confidence), grasp_point, yaw_image_deg,
         )

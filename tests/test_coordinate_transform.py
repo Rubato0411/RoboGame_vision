@@ -1,5 +1,7 @@
 from pathlib import Path
+import json
 import sys
+import tempfile
 import unittest
 
 import numpy as np
@@ -19,6 +21,25 @@ def calibration():
 
 
 class CoordinateTransformTests(unittest.TestCase):
+    def test_gripper_geometry_can_omit_field_tags(self):
+        with tempfile.TemporaryDirectory() as folder:
+            calibration_path = Path(folder) / "camera.json"
+            geometry_path = Path(folder) / "geometry.json"
+            calibration().save_json(calibration_path)
+            geometry_path.write_text(json.dumps({
+                "robot_from_camera": {
+                    "configured": True,
+                    "translation_m": [0, 0, 0.2],
+                    "rpy_deg": [0, 0, 0],
+                },
+                "field_from_tags": {},
+            }), encoding="utf-8")
+            result = CoordinateTransformer.from_json(
+                calibration_path, geometry_path, require_field_tags=False)
+            self.assertEqual(result.transforms_field_tag, {})
+            with self.assertRaises(ValueError):
+                CoordinateTransformer.from_json(calibration_path, geometry_path)
+
     def test_inverse_and_compose_identity(self):
         transform = RigidTransform.from_xyz_rpy([1, 2, 3], [10, 20, 30])
         identity = transform.compose(transform.inverse()).as_matrix()
