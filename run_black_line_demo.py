@@ -28,7 +28,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Black floor-line detector")
     parser.add_argument("--source", required=True)
     parser.add_argument("--config", default=str(ROOT / "configs" / "black_line_detector.json"))
-    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2"], default="auto")
+    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2", "picamera2"], default="auto")
     parser.add_argument("--fourcc", default="MJPG")
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=720)

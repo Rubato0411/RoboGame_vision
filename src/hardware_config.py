@@ -120,10 +120,6 @@ class HardwareMeasurementConfig:
         value = _lookup(self.data, dotted_path)
         return default if value is None else value
 
-    def get(self, dotted_path: str, default: Any = None) -> Any:
-        value = _lookup(self.data, dotted_path)
-        return default if value is None else value
-
     def require_ready(self) -> None:
         result = self.readiness()
         if result.ready:

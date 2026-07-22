@@ -22,7 +22,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=720)
     parser.add_argument("--fps", type=float, default=30.0)
-    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2"], default="auto")
+    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2", "picamera2"], default="auto")
     parser.add_argument("--fourcc", default="MJPG", help="Camera format, commonly MJPG or YUYV")
     parser.add_argument("--buffer-size", type=int, default=1)
     parser.add_argument("--warmup-frames", type=int, default=10)
@@ -41,6 +41,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--auto-white-balance", type=float)
     parser.add_argument("--focus", type=float)
     parser.add_argument("--auto-focus", type=float)
+    parser.add_argument("--exposure-time-us", type=int)
+    parser.add_argument("--analogue-gain", type=float)
+    parser.add_argument("--colour-gains", type=float, nargs=2, metavar=("RED", "BLUE"))
+    parser.add_argument("--lens-position", type=float)
+    parser.add_argument("--no-auto-exposure", action="store_true")
+    parser.add_argument("--no-auto-white-balance", action="store_true")
+    parser.add_argument("--no-auto-focus", action="store_true")
     parser.add_argument("--loop", action="store_true")
     parser.add_argument("--record", action="store_true")
     return parser
@@ -85,6 +92,12 @@ def main() -> int:
         brightness=args.brightness, contrast=args.contrast, saturation=args.saturation,
         sharpness=args.sharpness, white_balance=args.white_balance,
         auto_white_balance=args.auto_white_balance, focus=args.focus, auto_focus=args.auto_focus,
+        exposure_time_us=args.exposure_time_us, analogue_gain=args.analogue_gain,
+        colour_gains=tuple(args.colour_gains) if args.colour_gains else None,
+        lens_position=args.lens_position,
+        csi_auto_exposure=not args.no_auto_exposure,
+        csi_auto_white_balance=not args.no_auto_white_balance,
+        csi_auto_focus=not args.no_auto_focus,
     )
     paused = False
     recording_requested = args.record

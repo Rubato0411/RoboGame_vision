@@ -54,7 +54,7 @@ def build_parser():
     parser = argparse.ArgumentParser(description="Realtime front/gripper camera monitor")
     parser.add_argument("--front", required=True, help="Front camera index/path")
     parser.add_argument("--gripper", help="Optional gripper camera index/path")
-    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2"], default="auto")
+    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2", "picamera2"], default="auto")
     parser.add_argument("--fourcc", default="MJPG")
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=720)

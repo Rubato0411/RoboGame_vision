@@ -21,7 +21,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Orange/purple block detector demo")
     parser.add_argument("--source", required=True, help="Image/video path or camera index")
     parser.add_argument("--config", default=str(ROOT / "configs" / "block_detector_robust.json"))
-    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2"], default="auto")
+    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2", "picamera2"], default="auto")
     parser.add_argument("--fourcc", default="MJPG")
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=720)

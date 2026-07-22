@@ -82,7 +82,7 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Requested block color in GRAB_ASSIST mode")
     parser.add_argument("--calibration", help="Camera intrinsic calibration JSON")
     parser.add_argument("--coordinates", help="Configured coordinate_frames JSON")
-    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2"], default="auto")
+    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2", "picamera2"], default="auto")
     parser.add_argument("--fourcc", default="MJPG")
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=720)

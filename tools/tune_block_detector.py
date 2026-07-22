@@ -161,7 +161,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Interactive block detector parameter tuner")
     parser.add_argument("--source", default=str(ROOT / "data" / "synthetic_blocks.jpg"))
     parser.add_argument("--config", default=str(ROOT / "configs" / "block_detector_robust.json"))
-    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2"], default="auto")
+    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2", "picamera2"], default="auto")
     parser.add_argument("--fourcc", default="MJPG")
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=720)

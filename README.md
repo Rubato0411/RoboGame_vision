@@ -1,5 +1,7 @@
-<<<<<<< HEAD
 # RoboGame 视觉输入程序
+
+> 树莓派 5 双 CSI 摄像头使用 `--backend picamera2`，安装、标定和双路验证命令见
+> `docs/raspberry_pi_csi_camera_guide.md`。
 
 > 正式比赛入口与硬件参数说明：
 > `run_competition_system.py`、`configs/hardware_measurements.json`、

@@ -45,7 +45,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--height", type=int)
     parser.add_argument("--fps", type=float)
     parser.add_argument("--fourcc")
-    parser.add_argument("--backend", choices=["auto", "v4l2"])
+    parser.add_argument("--backend", choices=["auto", "v4l2", "picamera2"])
     parser.add_argument("--feedback-timeout", type=float)
     parser.add_argument("--max-frames", type=int, default=0)
     parser.add_argument("--quiet", action="store_true")
@@ -93,6 +93,14 @@ def main() -> int:
             gain=hardware.get(f"{prefix}.gain"),
             white_balance=hardware.get(f"{prefix}.white_balance"),
             focus=hardware.get(f"{prefix}.focus"),
+            exposure_time_us=hardware.get(f"{prefix}.exposure_time_us"),
+            analogue_gain=hardware.get(f"{prefix}.analogue_gain"),
+            colour_gains=(tuple(hardware.get(f"{prefix}.colour_gains"))
+                          if hardware.get(f"{prefix}.colour_gains") is not None else None),
+            lens_position=hardware.get(f"{prefix}.lens_position"),
+            csi_auto_exposure=bool(hardware.get(f"{prefix}.csi_auto_exposure", True)),
+            csi_auto_white_balance=bool(hardware.get(f"{prefix}.csi_auto_white_balance", True)),
+            csi_auto_focus=bool(hardware.get(f"{prefix}.csi_auto_focus", True)),
         )
 
     front_pipeline = VisionPipeline.from_paths(

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime
 from pathlib import Path
+from time import monotonic
 
 import cv2
 
@@ -17,20 +18,42 @@ def main() -> int:
     parser.add_argument("--columns", type=int, default=9)
     parser.add_argument("--rows", type=int, default=6)
     parser.add_argument("--square-mm", type=float, default=25.0)
-    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2"], default="auto")
+    parser.add_argument("--backend", choices=["auto", "dshow", "msmf", "v4l2", "picamera2"], default="auto")
     parser.add_argument("--fourcc", default="MJPG")
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=720)
     parser.add_argument("--fps", type=float, default=30)
+    parser.add_argument("--exposure-time-us", type=int)
+    parser.add_argument("--analogue-gain", type=float)
+    parser.add_argument("--colour-gains", type=float, nargs=2, metavar=("RED", "BLUE"))
+    parser.add_argument("--lens-position", type=float)
+    parser.add_argument("--no-auto-exposure", action="store_true")
+    parser.add_argument("--no-auto-white-balance", action="store_true")
+    parser.add_argument("--no-auto-focus", action="store_true")
+    parser.add_argument("--no-display", action="store_true",
+                        help="Headless SSH mode: save detected boards at --interval-s")
+    parser.add_argument("--interval-s", type=float, default=3.0)
+    parser.add_argument("--max-images", type=int, default=40)
     args = parser.parse_args()
+    if args.interval_s <= 0 or args.max_images <= 0:
+        parser.error("--interval-s and --max-images must be positive")
 
     source_value = int(args.source) if args.source.isdigit() else args.source
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     calibrator = CameraCalibrator(ChessboardSpec(args.columns, args.rows, args.square_mm / 1000.0))
     config = CameraConfig(width=args.width, height=args.height, fps=args.fps,
-                          backend=args.backend, fourcc=args.fourcc)
+                          backend=args.backend, fourcc=args.fourcc,
+                          exposure_time_us=args.exposure_time_us,
+                          analogue_gain=args.analogue_gain,
+                          colour_gains=tuple(args.colour_gains) if args.colour_gains else None,
+                          lens_position=args.lens_position,
+                          csi_auto_exposure=not args.no_auto_exposure,
+                          csi_auto_white_balance=not args.no_auto_white_balance,
+                          csi_auto_focus=not args.no_auto_focus)
     saved = len(list(output_dir.glob("calib_*.jpg")))
+    saved_this_run = 0
+    last_saved_at = monotonic() - args.interval_s
 
     try:
         with ImageSource(source_value, camera_config=config) as source:
@@ -40,6 +63,18 @@ def main() -> int:
                     print("ERROR: camera stream ended")
                     return 1
                 observation = calibrator.detect_corners(packet.image)
+                if args.no_display:
+                    now = monotonic()
+                    if observation is not None and now - last_saved_at >= args.interval_s:
+                        path = output_dir / f"calib_{datetime.now():%Y%m%d_%H%M%S_%f}.jpg"
+                        if cv2.imwrite(str(path), packet.image):
+                            saved += 1
+                            saved_this_run += 1
+                            last_saved_at = now
+                            print(f"Saved {saved} ({saved_this_run}/{args.max_images} this run): {path}")
+                    if saved_this_run >= args.max_images:
+                        break
+                    continue
                 display = packet.image.copy()
                 if observation is not None:
                     display = calibrator.draw_detection(display, observation)

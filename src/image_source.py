@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from time import monotonic, sleep
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import cv2
 import numpy as np
@@ -49,10 +49,20 @@ class CameraConfig:
     auto_white_balance: Optional[float] = None
     focus: Optional[float] = None
     auto_focus: Optional[float] = None
+    # Picamera2/libcamera controls for Raspberry Pi CSI cameras. ExposureTime
+    # uses microseconds; colour_gains is (red_gain, blue_gain); lens_position
+    # uses dioptres as defined by libcamera.
+    exposure_time_us: Optional[int] = None
+    analogue_gain: Optional[float] = None
+    colour_gains: Optional[tuple[float, float]] = None
+    lens_position: Optional[float] = None
+    csi_auto_exposure: bool = True
+    csi_auto_white_balance: bool = True
+    csi_auto_focus: bool = True
 
 
 class ImageSource:
-    """Robust reader for an image, video, or USB/UVC camera.
+    """Robust reader for an image, video, USB/UVC camera, or Pi CSI camera.
 
     Camera reads recover from short failures and attempt to reopen a disconnected
     device. The public read() method is intentionally independent of OpenCV's
@@ -67,6 +77,7 @@ class ImageSource:
         "dshow": cv2.CAP_DSHOW,
         "msmf": cv2.CAP_MSMF,
         "v4l2": cv2.CAP_V4L2,
+        "picamera2": None,
     }
     CONTROL_PROPERTIES = {
         "auto_exposure": cv2.CAP_PROP_AUTO_EXPOSURE,
@@ -95,6 +106,7 @@ class ImageSource:
         self.reconnect_count = 0
         self._consecutive_failures = 0
         self._capture: Optional[cv2.VideoCapture] = None
+        self._picamera: Optional[Any] = None
         self._still_image: Optional[np.ndarray] = None
         self._is_camera = isinstance(source, int)
         self._source_name = f"camera:{source}" if self._is_camera else str(source)
@@ -121,6 +133,9 @@ class ImageSource:
         backend_name = config.backend.lower()
         if backend_name not in self.BACKENDS:
             raise ValueError(f"Unknown backend '{config.backend}'. Choose: {', '.join(self.BACKENDS)}")
+        if backend_name == "picamera2":
+            self._open_picamera2()
+            return
         backend = self.BACKENDS[backend_name]
 
         self.release()
@@ -140,6 +155,80 @@ class ImageSource:
             f"Could not open {self._source_name} with backend={backend_name}: {last_error}. "
             "Close other camera applications and try another index/backend."
         )
+
+    @staticmethod
+    def _picamera2_class():
+        try:
+            from picamera2 import Picamera2
+        except ImportError as exc:
+            raise RuntimeError(
+                "Picamera2 is required for backend=picamera2. On Raspberry Pi OS run "
+                "'sudo apt install python3-picamera2', then use a venv created with "
+                "'python3 -m venv --system-site-packages .venv'."
+            ) from exc
+        return Picamera2
+
+    def _open_picamera2(self) -> None:
+        config = self.camera_config
+        self.release()
+        Picamera2 = self._picamera2_class()
+        last_error = "camera did not open"
+        for attempt in range(1, max(config.open_retries, 1) + 1):
+            camera = None
+            try:
+                camera = Picamera2(camera_num=int(self.source))
+                controls: dict[str, object] = {"FrameRate": float(config.fps)}
+                if config.exposure_time_us is not None or config.analogue_gain is not None:
+                    controls["AeEnable"] = False
+                else:
+                    controls["AeEnable"] = bool(config.csi_auto_exposure)
+                if config.exposure_time_us is not None:
+                    controls["ExposureTime"] = int(config.exposure_time_us)
+                if config.analogue_gain is not None:
+                    controls["AnalogueGain"] = float(config.analogue_gain)
+                controls["AwbEnable"] = bool(config.csi_auto_white_balance)
+                if config.colour_gains is not None:
+                    controls["AwbEnable"] = False
+                    controls["ColourGains"] = tuple(map(float, config.colour_gains))
+                available_controls = getattr(camera, "camera_controls", {})
+                if config.lens_position is not None and "LensPosition" not in available_controls:
+                    raise RuntimeError("this CSI camera does not support lens-position control")
+                if config.lens_position is not None:
+                    controls["AfMode"] = 0  # libcamera AfModeManual
+                    controls["LensPosition"] = float(config.lens_position)
+                elif config.csi_auto_focus and "AfMode" in available_controls:
+                    controls["AfMode"] = 2  # libcamera AfModeContinuous
+
+                video_config = camera.create_video_configuration(
+                    main={"size": (int(config.width), int(config.height)), "format": "RGB888"},
+                    controls=controls,
+                    buffer_count=max(int(config.buffer_size) + 1, 2),
+                    queue=False,
+                )
+                camera.configure(video_config)
+                camera.start()
+                self._picamera = camera
+                self._discard_picamera_warmup_frames()
+                self._consecutive_failures = 0
+                return
+            except Exception as exc:
+                last_error = str(exc)
+                if camera is not None:
+                    try:
+                        camera.close()
+                    except Exception:
+                        pass
+                if attempt < max(config.open_retries, 1):
+                    sleep(config.reconnect_delay)
+        raise RuntimeError(
+            f"Could not open {self._source_name} with backend=picamera2: {last_error}. "
+            "Check 'rpicam-hello --list-cameras' and make sure no other process owns the camera."
+        )
+
+    def _discard_picamera_warmup_frames(self) -> None:
+        assert self._picamera is not None
+        for _ in range(max(self.camera_config.warmup_frames, 0)):
+            self._picamera.capture_array("main")
 
     def _configure_camera(self) -> None:
         assert self._capture is not None
@@ -213,6 +302,20 @@ class ImageSource:
         if self._still_image is not None:
             height, width = self._still_image.shape[:2]
             return {"width": width, "height": height, "fps": 0.0, "backend": "image"}
+        if self._picamera is not None:
+            metadata = self._picamera.capture_metadata()
+            return {
+                "width": self.camera_config.width,
+                "height": self.camera_config.height,
+                "fps": self.camera_config.fps,
+                "format": "RGB888 (OpenCV BGR array)",
+                "backend": "picamera2",
+                "camera_num": int(self.source),
+                "exposure_time_us": metadata.get("ExposureTime"),
+                "analogue_gain": metadata.get("AnalogueGain"),
+                "colour_gains": metadata.get("ColourGains"),
+                "lens_position": metadata.get("LensPosition"),
+            }
         if self._capture is None:
             return {"width": 0, "height": 0, "fps": 0.0, "backend": "closed"}
         raw_fourcc = int(self._capture.get(cv2.CAP_PROP_FOURCC))
@@ -232,6 +335,20 @@ class ImageSource:
     def read(self) -> Optional[FramePacket]:
         if self._still_image is not None:
             image = self._still_image.copy()
+        elif self._picamera is not None:
+            try:
+                image = self._picamera.capture_array("main")
+            except Exception as exc:
+                print(f"WARNING: CSI camera read failed: {exc}")
+                image = None
+            if image is None or image.size == 0:
+                self._consecutive_failures += 1
+                if self._consecutive_failures < self.camera_config.max_read_failures:
+                    return self.read()
+                if not self._reconnect():
+                    return None
+                return self.read()
+            self._consecutive_failures = 0
         else:
             assert self._capture is not None
             ok, image = self._capture.read()
@@ -264,6 +381,12 @@ class ImageSource:
         return packet
 
     def release(self) -> None:
+        if self._picamera is not None:
+            try:
+                self._picamera.stop()
+            finally:
+                self._picamera.close()
+                self._picamera = None
         if self._capture is not None:
             self._capture.release()
             self._capture = None

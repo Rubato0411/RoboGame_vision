@@ -7,9 +7,12 @@
         "width": 1280,
         "height": 720,
         "fps": 30.0,
-        "backend": "v4l2",
+        "backend": "picamera2",
         "fourcc": "MJPG",
-        "buffer_size": 1
+        "buffer_size": 1,
+        "csi_auto_exposure": true,
+        "csi_auto_white_balance": true,
+        "csi_auto_focus": true
       }
     },
     "gripper": {
@@ -19,9 +22,12 @@
         "width": 1280,
         "height": 720,
         "fps": 30.0,
-        "backend": "v4l2",
+        "backend": "picamera2",
         "fourcc": "MJPG",
-        "buffer_size": 1
+        "buffer_size": 1,
+        "csi_auto_exposure": true,
+        "csi_auto_white_balance": true,
+        "csi_auto_focus": true
       }
     }
   }
