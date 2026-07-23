@@ -43,14 +43,26 @@ def main() -> int:
     steps = [
         ("start", 0.0, None, RobotFeedback(start_signal=True)),
         ("arrive_material", 0.1, None, RobotFeedback(at_material_zone=True)),
-        ("target_aligned", 0.2, synthetic_vision(.2, target=True, aligned=True), RobotFeedback()),
-        ("grasp_confirmed", 0.3, None, RobotFeedback(grasp_confirmed=True)),
-        ("arrive_build", 0.4, None, RobotFeedback(at_build_zone=True)),
-        ("placement_visible", 0.5, synthetic_vision(.5, placement=True), RobotFeedback()),
-        ("place_pose_reached", 0.6, None, RobotFeedback(place_pose_reached=True)),
-        ("released", 0.7, None, RobotFeedback(
+        ("block_1_aligned", 0.2, synthetic_vision(.2, target=True, aligned=True), RobotFeedback()),
+        ("block_1_grasped", 0.3, None, RobotFeedback(grasp_confirmed=True)),
+        ("block_1_stowed", 0.4, None, RobotFeedback(
+            cargo_stowed_confirmed=True, cargo_stowed_slot_id="cargo_left")),
+        ("block_2_aligned", 0.5, synthetic_vision(.5, target=True, aligned=True), RobotFeedback()),
+        ("block_2_grasped", 0.6, None, RobotFeedback(grasp_confirmed=True)),
+        ("block_2_stowed", 0.7, None, RobotFeedback(
+            cargo_stowed_confirmed=True, cargo_stowed_slot_id="cargo_center")),
+        ("block_3_aligned", 0.8, synthetic_vision(.8, target=True, aligned=True), RobotFeedback()),
+        ("block_3_grasped", 0.9, None, RobotFeedback(grasp_confirmed=True)),
+        ("block_3_stowed", 1.0, None, RobotFeedback(
+            cargo_stowed_confirmed=True, cargo_stowed_slot_id="cargo_right")),
+        ("arrive_build", 1.1, None, RobotFeedback(at_build_zone=True)),
+        ("cargo_retrieved", 1.2, None, RobotFeedback(
+            cargo_retrieved_confirmed=True, cargo_retrieved_slot_id="cargo_left")),
+        ("placement_visible", 1.3, synthetic_vision(1.3, placement=True), RobotFeedback()),
+        ("place_pose_reached", 1.4, None, RobotFeedback(place_pose_reached=True)),
+        ("released", 1.5, None, RobotFeedback(
             release_confirmed=True, target_in_slot=True, structure_stable=True)),
-        ("stable_three_seconds", 3.7, None, RobotFeedback(structure_stable=True)),
+        ("stable_three_seconds", 4.5, None, RobotFeedback(structure_stable=True)),
     ]
     for name, now, vision, feedback in steps:
         decision = controller.step(vision, feedback, now)
@@ -60,6 +72,7 @@ def main() -> int:
                          indent=None if args.compact else 2))
     print(json.dumps({
         "placed_colors": controller.placed_colors,
+        "cargo_slots": controller.cargo_slots,
         "occupied_slot_ids": sorted(controller.occupied_slot_ids),
     }, ensure_ascii=False, indent=None if args.compact else 2))
     return 0
