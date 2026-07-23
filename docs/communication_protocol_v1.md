@@ -98,6 +98,10 @@ python tools\simulate_communication.py `
   "at_material_zone": false,
   "at_build_zone": false,
   "grasp_confirmed": false,
+  "cargo_stowed_confirmed": false,
+  "cargo_stowed_slot_id": null,
+  "cargo_retrieved_confirmed": false,
+  "cargo_retrieved_slot_id": null,
   "place_pose_reached": false,
   "release_confirmed": false,
   "target_in_slot": false,
@@ -107,7 +111,11 @@ python tools\simulate_communication.py `
 }
 ```
 
-`CompetitionCommand`包含比赛阶段、视觉模式、运动意图、夹爪意图、目标颜色、搭建槽位、比赛计时和
+装车和取出确认必须同时携带实际完成动作的`cargo_*_slot_id`。只有它与上位机当前命令中的
+`cargo_slot_id`一致，上位机才接受确认；禁止用上一动作残留的`true`推进状态机。
+
+`CompetitionCommand`包含比赛阶段、视觉模式、运动意图、夹爪意图、目标颜色、车载槽位、
+搭建槽位、比赛计时和
 安全停车标志。运动意图是语义命令，不是未经限幅的电机PWM。
 
 `communication_runtime.py`已经提供非阻塞pyserial读写、ACK、心跳和完整写入循环。实际串口名、

@@ -33,6 +33,13 @@ DEFAULT_REQUIRED_MEASUREMENTS = (
     "cameras.gripper.grasp_reference_px",
     "cameras.gripper.alignment_tolerance_px",
     "cameras.gripper.alignment_tolerance_deg",
+    "onboard_cargo.configuration_file",
+    "onboard_cargo.slots.cargo_left.translation_m",
+    "onboard_cargo.slots.cargo_left.rpy_deg",
+    "onboard_cargo.slots.cargo_center.translation_m",
+    "onboard_cargo.slots.cargo_center.rpy_deg",
+    "onboard_cargo.slots.cargo_right.translation_m",
+    "onboard_cargo.slots.cargo_right.rpy_deg",
     "field_tags.1.field_from_tag.translation_m",
     "field_tags.1.field_from_tag.rpy_deg",
     "field_tags.2.field_from_tag.translation_m",
@@ -108,7 +115,7 @@ class HardwareMeasurementConfig:
             value = _lookup(self.data, path)
             if value is None or value == "":
                 missing.append(path)
-        for section in ("platform", "cameras", "field_tags", "placement",
+        for section in ("platform", "cameras", "onboard_cargo", "field_tags", "placement",
                         "lower_controller", "safety", "performance", "vision_acceptance"):
             value = self.data.get(section)
             if isinstance(value, dict) and value.get("verified") is False:

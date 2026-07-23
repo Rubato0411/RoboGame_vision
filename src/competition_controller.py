@@ -15,7 +15,9 @@ class CompetitionPhase(str, Enum):
     SEARCH_BLOCK = "SEARCH_BLOCK"
     ALIGN_GRAB = "ALIGN_GRAB"
     VERIFY_GRASP = "VERIFY_GRASP"
+    STOW_CARGO = "STOW_CARGO"
     NAVIGATE_TO_BUILD = "NAVIGATE_TO_BUILD"
+    RETRIEVE_CARGO = "RETRIEVE_CARGO"
     LOCALIZE_BUILD = "LOCALIZE_BUILD"
     ALIGN_PLACE = "ALIGN_PLACE"
     VERIFY_RELEASE = "VERIFY_RELEASE"
@@ -30,20 +32,30 @@ class CompetitionStrategyConfig:
     """Conservative strategy that remains useful before mechanical details exist."""
 
     orange_blocks_before_roof: int = 2
-    trip_capacity: int = 1
+    trip_capacity: int = 3
+    cargo_slot_ids: tuple[str, ...] = ("cargo_left", "cargo_center", "cargo_right")
     target_loss_timeout_s: float = 2.0
     phase_timeout_s: float = 30.0
 
     @classmethod
     def from_json(cls, path: str | Path) -> "CompetitionStrategyConfig":
         raw = json.loads(Path(path).read_text(encoding="utf-8"))
-        return cls(**raw.get("strategy", raw))
+        values = dict(raw.get("strategy", raw))
+        if "cargo_slot_ids" in values:
+            values["cargo_slot_ids"] = tuple(values["cargo_slot_ids"])
+        return cls(**values)
 
     def validate(self, rules: CompetitionRules) -> None:
         if self.orange_blocks_before_roof < 1:
             raise ValueError("orange_blocks_before_roof must be at least one")
         if not 1 <= self.trip_capacity <= rules.max_carried_blocks:
             raise ValueError("trip_capacity exceeds the rule carrying limit")
+        if len(self.cargo_slot_ids) < self.trip_capacity:
+            raise ValueError("cargo_slot_ids must cover every carried block")
+        if len(set(self.cargo_slot_ids)) != len(self.cargo_slot_ids):
+            raise ValueError("cargo_slot_ids must be unique")
+        if any(not slot_id for slot_id in self.cargo_slot_ids):
+            raise ValueError("cargo slot IDs cannot be empty")
         if self.target_loss_timeout_s <= 0 or self.phase_timeout_s <= 0:
             raise ValueError("strategy timeouts must be positive")
 
@@ -63,6 +75,10 @@ class RobotFeedback:
     at_material_zone: bool = False
     at_build_zone: bool = False
     grasp_confirmed: bool = False
+    cargo_stowed_confirmed: bool = False
+    cargo_stowed_slot_id: str | None = None
+    cargo_retrieved_confirmed: bool = False
+    cargo_retrieved_slot_id: str | None = None
     place_pose_reached: bool = False
     release_confirmed: bool = False
     target_in_slot: bool = False
@@ -72,8 +88,16 @@ class RobotFeedback:
 
     @classmethod
     def from_mapping(cls, value: dict) -> "RobotFeedback":
-        allowed = cls.__dataclass_fields__.keys()
-        return cls(**{key: bool(item) for key, item in value.items() if key in allowed})
+        allowed = cls.__dataclass_fields__
+        converted = {}
+        for key, item in value.items():
+            if key not in allowed:
+                continue
+            if key in {"cargo_stowed_slot_id", "cargo_retrieved_slot_id"}:
+                converted[key] = str(item) if item not in (None, "") else None
+            else:
+                converted[key] = bool(item)
+        return cls(**converted)
 
 
 @dataclass(frozen=True)
@@ -83,6 +107,7 @@ class CompetitionDecision:
     motion_intent: str
     gripper_intent: str
     desired_block_color: str | None
+    cargo_slot_id: str | None
     placement_slot_id: str | None
     safe_stop: bool
     match_elapsed_s: float
@@ -95,6 +120,7 @@ class CompetitionDecision:
             "motion_intent": self.motion_intent,
             "gripper_intent": self.gripper_intent,
             "desired_block_color": self.desired_block_color,
+            "cargo_slot_id": self.cargo_slot_id,
             "placement_slot_id": self.placement_slot_id,
             "safe_stop": self.safe_stop,
             "match_elapsed_s": self.match_elapsed_s,
@@ -120,10 +146,12 @@ class CompetitionController:
         self.phase_entered_s = 0.0
         self.match_started_s: float | None = None
         self.carried_colors: list[str] = []
+        self.cargo_slots: dict[str, str] = {}
         self.placed_colors: list[str] = []
         self.occupied_slot_ids: set[str] = set()
         self.desired_block_color: str | None = None
         self.active_slot_id: str | None = None
+        self.active_cargo_slot_id: str | None = None
         self._stable_since_s: float | None = None
 
     @classmethod
@@ -144,10 +172,12 @@ class CompetitionController:
         self.phase_entered_s = float(now_s)
         self.match_started_s = None
         self.carried_colors.clear()
+        self.cargo_slots.clear()
         self.placed_colors.clear()
         self.occupied_slot_ids.clear()
         self.desired_block_color = None
         self.active_slot_id = None
+        self.active_cargo_slot_id = None
         self._stable_since_s = None
 
     def step(self, vision: VisionOutput | None, feedback: RobotFeedback,
@@ -219,25 +249,62 @@ class CompetitionController:
                     return self._decision(VisionMode.SAFE_STOP, "STOP", "HOLD", elapsed,
                                           "reported grasp would violate carrying limits")
                 self.carried_colors.append(color)
-                next_color = self._choose_next_color()
-                if (len(self.carried_colors) < self.strategy.trip_capacity and
-                        self.rules.carrying_allowed(self.carried_colors, next_color)):
-                    self.desired_block_color = next_color
-                    self._enter(CompetitionPhase.SEARCH_BLOCK, now)
-                else:
-                    self._enter(CompetitionPhase.NAVIGATE_TO_BUILD, now)
+                self.active_cargo_slot_id = self._first_free_cargo_slot()
+                if self.active_cargo_slot_id is None:
+                    self._enter(CompetitionPhase.SAFE_STOP, now)
+                    return self._decision(VisionMode.SAFE_STOP, "STOP", "HOLD", elapsed,
+                                          "no free onboard cargo position is available")
+                self._enter(CompetitionPhase.STOW_CARGO, now)
             elif self._phase_timed_out(now, self.strategy.phase_timeout_s):
                 self._enter(CompetitionPhase.RECOVERY, now)
             else:
                 return self._decision(VisionMode.GRAB_ASSIST, "HOLD", "CLOSE", elapsed,
                                       "waiting for independent grasp confirmation")
 
+        if self.phase == CompetitionPhase.STOW_CARGO:
+            if (feedback.cargo_stowed_confirmed and
+                    feedback.cargo_stowed_slot_id == self.active_cargo_slot_id):
+                assert self.active_cargo_slot_id is not None
+                self.cargo_slots[self.active_cargo_slot_id] = self.carried_colors[-1]
+                self.active_cargo_slot_id = None
+                next_color = self._choose_next_color()
+                if (len(self.carried_colors) < self.strategy.trip_capacity and
+                        self.rules.carrying_allowed(self.carried_colors, next_color)):
+                    self.desired_block_color = next_color
+                    self._enter(CompetitionPhase.SEARCH_BLOCK, now)
+                else:
+                    self.desired_block_color = None
+                    self._enter(CompetitionPhase.NAVIGATE_TO_BUILD, now)
+            elif self._phase_timed_out(now, self.strategy.phase_timeout_s):
+                self._enter(CompetitionPhase.RECOVERY, now)
+            else:
+                return self._decision(
+                    VisionMode.IDLE, "HOLD", "STOW_TO_CARGO", elapsed,
+                    "waiting for confirmation that the grasped block is secured onboard")
+
         if self.phase == CompetitionPhase.NAVIGATE_TO_BUILD:
             if feedback.at_build_zone:
-                self._enter(CompetitionPhase.LOCALIZE_BUILD, now)
+                self.active_cargo_slot_id = self._next_loaded_cargo_slot()
+                if self.active_cargo_slot_id is None:
+                    self._enter(CompetitionPhase.SAFE_STOP, now)
+                    return self._decision(VisionMode.SAFE_STOP, "STOP", "HOLD", elapsed,
+                                          "cargo manifest is empty at the building zone")
+                self.desired_block_color = self.cargo_slots[self.active_cargo_slot_id]
+                self._enter(CompetitionPhase.RETRIEVE_CARGO, now)
             else:
                 return self._decision(VisionMode.FOLLOW_LINE, "GO_TO_BUILD", "HOLD", elapsed,
-                                      "transporting the block to the building zone")
+                                      "transporting three secured blocks to the building zone")
+
+        if self.phase == CompetitionPhase.RETRIEVE_CARGO:
+            if (feedback.cargo_retrieved_confirmed and
+                    feedback.cargo_retrieved_slot_id == self.active_cargo_slot_id):
+                self._enter(CompetitionPhase.LOCALIZE_BUILD, now)
+            elif self._phase_timed_out(now, self.strategy.phase_timeout_s):
+                self._enter(CompetitionPhase.RECOVERY, now)
+            else:
+                return self._decision(
+                    VisionMode.IDLE, "HOLD", "RETRIEVE_FROM_CARGO", elapsed,
+                    "waiting for the selected onboard block to be presented for placement")
 
         if self.phase == CompetitionPhase.LOCALIZE_BUILD:
             if vision is not None and vision.placement.valid:
@@ -272,8 +339,14 @@ class CompetitionController:
                     self._stable_since_s = now
                 if now - self._stable_since_s >= self.rules.build_stability_s:
                     if self._commit_placement():
-                        next_phase = (CompetitionPhase.LOCALIZE_BUILD if self.carried_colors
-                                      else CompetitionPhase.NAVIGATE_TO_MATERIAL)
+                        if self.carried_colors:
+                            self.active_cargo_slot_id = self._next_loaded_cargo_slot()
+                            self.desired_block_color = (
+                                self.cargo_slots[self.active_cargo_slot_id]
+                                if self.active_cargo_slot_id else None)
+                            next_phase = CompetitionPhase.RETRIEVE_CARGO
+                        else:
+                            next_phase = CompetitionPhase.NAVIGATE_TO_MATERIAL
                         self._enter(next_phase, now)
             else:
                 self._stable_since_s = None
@@ -285,8 +358,16 @@ class CompetitionController:
             waited = now - self.phase_entered_s
             if (feedback.robot_in_start_zone and feedback.recovery_acknowledged and
                     waited >= self.rules.abnormal_restart_wait_s):
-                next_phase = (CompetitionPhase.NAVIGATE_TO_BUILD if self.carried_colors
-                              else CompetitionPhase.NAVIGATE_TO_MATERIAL)
+                has_pending_stow = (
+                    self.active_cargo_slot_id is not None and
+                    self.active_cargo_slot_id not in self.cargo_slots and
+                    len(self.carried_colors) > len(self.cargo_slots))
+                if has_pending_stow:
+                    next_phase = CompetitionPhase.STOW_CARGO
+                elif self.cargo_slots:
+                    next_phase = CompetitionPhase.NAVIGATE_TO_BUILD
+                else:
+                    next_phase = CompetitionPhase.NAVIGATE_TO_MATERIAL
                 self._enter(next_phase, now)
             else:
                 return self._decision(VisionMode.SAFE_STOP, "STOP", "HOLD", elapsed,
@@ -323,16 +404,26 @@ class CompetitionController:
             return "purple"
         return "orange"
 
+    def _first_free_cargo_slot(self) -> str | None:
+        return next((slot_id for slot_id in self.strategy.cargo_slot_ids
+                     if slot_id not in self.cargo_slots), None)
+
+    def _next_loaded_cargo_slot(self) -> str | None:
+        return next((slot_id for slot_id in self.strategy.cargo_slot_ids
+                     if slot_id in self.cargo_slots), None)
+
     def _commit_placement(self) -> bool:
-        if not self.carried_colors:
+        if not self.carried_colors or self.active_cargo_slot_id not in self.cargo_slots:
             self._enter(CompetitionPhase.SAFE_STOP, self.phase_entered_s)
             return False
-        color = self.carried_colors.pop(0)
+        color = self.cargo_slots.pop(self.active_cargo_slot_id)
+        self.carried_colors.remove(color)
         self.placed_colors.append(color)
         if self.active_slot_id:
             self.occupied_slot_ids.add(self.active_slot_id)
         self.active_slot_id = None
-        self.desired_block_color = self.carried_colors[0] if self.carried_colors else None
+        self.active_cargo_slot_id = None
+        self.desired_block_color = None
         self._stable_since_s = None
         return True
 
@@ -340,7 +431,7 @@ class CompetitionController:
                   elapsed: float, reason: str) -> CompetitionDecision:
         return CompetitionDecision(
             self.phase, vision_mode, motion, gripper, self.desired_block_color,
-            self.active_slot_id, self.phase in {
+            self.active_cargo_slot_id, self.active_slot_id, self.phase in {
                 CompetitionPhase.RECOVERY, CompetitionPhase.FINISHED,
                 CompetitionPhase.SAFE_STOP,
             }, float(elapsed), reason,

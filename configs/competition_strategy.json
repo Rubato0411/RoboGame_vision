@@ -2,7 +2,12 @@
   "description": "Hardware-independent conservative strategy. Revisit after gripper and chassis testing.",
   "strategy": {
     "orange_blocks_before_roof": 2,
-    "trip_capacity": 1,
+    "trip_capacity": 3,
+    "cargo_slot_ids": [
+      "cargo_left",
+      "cargo_center",
+      "cargo_right"
+    ],
     "target_loss_timeout_s": 2.0,
     "phase_timeout_s": 30.0
   }

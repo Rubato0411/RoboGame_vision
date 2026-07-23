@@ -114,6 +114,32 @@
       "continuous_test_duration_min": null
     }
   },
+  "onboard_cargo": {
+    "verified": false,
+    "configuration_file": "configs/onboard_cargo_slots.json",
+    "capacity": 3,
+    "instructions": "Mechanical/electrical team supplies and verifies these robot-frame load/retrieve poses. Vision sends only cargo_slot_id and tracks the manifest.",
+    "slots": {
+      "cargo_left": {
+        "translation_m": null,
+        "rpy_deg": null,
+        "load_pose_verified": false,
+        "retrieve_pose_verified": false
+      },
+      "cargo_center": {
+        "translation_m": null,
+        "rpy_deg": null,
+        "load_pose_verified": false,
+        "retrieve_pose_verified": false
+      },
+      "cargo_right": {
+        "translation_m": null,
+        "rpy_deg": null,
+        "load_pose_verified": false,
+        "retrieve_pose_verified": false
+      }
+    }
+  },
   "field_tags": {
     "verified": false,
     "coordinate_origin_description": null,

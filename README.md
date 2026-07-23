@@ -9,6 +9,9 @@
 >
 > 各视觉模块的独立测试命令、参数对应表和视觉/电控职责边界见：
 > `docs/visual_module_test_guide.md`。
+>
+> 三方块依次装入车载槽位、到搭建区后逐块取出的状态机和电控接口见：
+> `docs/three_block_cargo_workflow.md`。
 
 项目提供统一的图片、视频和USB/UVC摄像头输入接口。检测算法始终从 `FramePacket.image` 获取图像，因此从离线视频切换到真实机器人摄像头时不需要重写检测器。
 
