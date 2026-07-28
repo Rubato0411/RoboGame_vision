@@ -118,23 +118,23 @@
     "verified": false,
     "configuration_file": "configs/onboard_cargo_slots.json",
     "capacity": 3,
-    "instructions": "Mechanical/electrical team supplies and verifies these robot-frame load/retrieve poses. Vision sends only cargo_slot_id and tracks the manifest.",
+    "instructions": "Robot-frame poses are measured but load/retrieve motions remain unverified. Mechanical/electrical team verifies the motions; vision sends only cargo_slot_id and tracks the manifest.",
     "slots": {
       "cargo_left": {
-        "translation_m": null,
-        "rpy_deg": null,
+        "translation_m": [0.185, -0.145, 0.0],
+        "rpy_deg": [0.0, 0.0, -30.0],
         "load_pose_verified": false,
         "retrieve_pose_verified": false
       },
       "cargo_center": {
-        "translation_m": null,
-        "rpy_deg": null,
+        "translation_m": [0.005, -0.11, 0.0],
+        "rpy_deg": [0.0, 0.0, 45.0],
         "load_pose_verified": false,
         "retrieve_pose_verified": false
       },
       "cargo_right": {
-        "translation_m": null,
-        "rpy_deg": null,
+        "translation_m": [0.185, 0.145, 0.0],
+        "rpy_deg": [0.0, 0.0, 30.0],
         "load_pose_verified": false,
         "retrieve_pose_verified": false
       }
