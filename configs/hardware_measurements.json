@@ -142,14 +142,14 @@
   },
   "field_tags": {
     "verified": false,
-    "coordinate_origin_description": null,
-    "axis_convention": null,
-    "1": {"field_from_tag": {"translation_m": null, "rpy_deg": null}},
-    "2": {"field_from_tag": {"translation_m": null, "rpy_deg": null}},
-    "3": {"field_from_tag": {"translation_m": null, "rpy_deg": null}},
-    "4": {"field_from_tag": {"translation_m": null, "rpy_deg": null}},
-    "5": {"field_from_tag": {"translation_m": null, "rpy_deg": null}},
-    "6": {"field_from_tag": {"translation_m": null, "rpy_deg": null}}
+    "coordinate_origin_description": "Field origin used for the supplied measured tag coordinates; physical origin description still requires confirmation.",
+    "axis_convention": "Right-handed field frame, metres, Z upward. Tag X points to printed right, Tag Y to printed up, Tag Z outward from the printed face.",
+    "1": {"field_from_tag": {"translation_m": [0.93, 0.3, 0.325], "rpy_deg": [90.0, 0.0, 0.0]}},
+    "2": {"field_from_tag": {"translation_m": [1.475, -0.595, 0.325], "rpy_deg": [90.0, 0.0, -90.0]}},
+    "3": {"field_from_tag": {"translation_m": [2.9, -1.9, 0.325], "rpy_deg": [90.0, 0.0, 0.0]}},
+    "4": {"field_from_tag": {"translation_m": [4.05, -2.805, 0.325], "rpy_deg": [90.0, 0.0, -90.0]}},
+    "5": {"field_from_tag": {"translation_m": [0.93, -3.7, 0.325], "rpy_deg": [90.0, 0.0, 180.0]}},
+    "6": {"field_from_tag": {"translation_m": [0.3, -2.805, 0.325], "rpy_deg": [90.0, 0.0, 90.0]}}
   },
   "placement": {
     "verified": false,
