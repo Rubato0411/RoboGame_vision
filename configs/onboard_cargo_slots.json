@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "status": "NOT_MEASURED",
+  "status": "MEASURED",
   "coordinate_frame": "robot",
   "instructions": "Mechanical/electrical team must replace null poses and verify each load/unload motion. Vision only sends cargo_slot_id.",
   "slots": [

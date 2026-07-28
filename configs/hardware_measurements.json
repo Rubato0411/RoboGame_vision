@@ -12,20 +12,20 @@
     "tag_upper_edge_height_m": 0.40
   },
   "platform": {
-    "verified": false,
+    "verified": true,
     "board": "Raspberry Pi 5B 8GB",
-    "os_release": null,
-    "kernel_version": null,
-    "python_version": null,
-    "opencv_version": null,
-    "numpy_version": null,
+    "os_release": "Debian GNU/Linux 13 (trixie)",
+    "kernel_version": "6.18.34+rpt-rpi-2712",
+    "python_version": "Python 3.13.5",
+    "opencv_version": "4.10.0",
+    "numpy_version": "2.2.4",
     "cooling_solution": null,
     "power_supply_model": null,
-    "sustained_cpu_temperature_c": null,
+    "sustained_cpu_temperature_c": "temp=36.2'C",
     "thermal_throttling_observed": null
   },
   "cameras": {
-    "verified": false,
+    "verified": true,
     "front": {
       "model": "Raspberry Pi Camera Module 3 IMX708 Wide",
       "serial_number": null,
@@ -42,28 +42,38 @@
       "actual_fps": null,
       "actual_fourcc": null,
       "buffer_size": 1,
-      "exposure": null,
-      "gain": null,
+      "exposure": 8000,
+      "gain": 2.7,
       "white_balance": null,
-      "focus": null,
-      "exposure_time_us": null,
-      "analogue_gain": null,
-      "colour_gains": null,
-      "lens_position": null,
-      "csi_auto_exposure": true,
-      "csi_auto_white_balance": true,
-      "csi_auto_focus": true,
+      "focus": 1.0,
+      "exposure_time_us": 29984,
+      "analogue_gain": 2.7,
+      "colour_gains": [1.95,2.05],
+      "lens_position": 1.0,
+      "csi_auto_exposure": false,
+      "csi_auto_white_balance": false,
+      "csi_auto_focus": false,
       "intrinsics": {
-        "camera_matrix": null,
-        "distortion_coefficients": null,
-        "reprojection_error_px": null,
-        "calibration_image_count": null
+        "camera_matrix": [
+          [828.4222369535998, 0.0, 636.1255908709712],
+          [0.0, 828.4523766829137, 372.89221233844],
+          [0.0, 0.0, 1.0]
+        ],
+        "distortion_coefficients": [
+          -0.0586975180334482,
+          0.14539228112807986,
+          0.0034641546637380898,
+          -0.0018318604624810552,
+          -0.054785121567522396
+        ],
+        "reprojection_error_px": 0.122,
+        "calibration_image_count": 46
       },
       "robot_from_camera": {
-        "translation_m": null,
-        "rpy_deg": null,
-        "measurement_uncertainty_m": null,
-        "measurement_uncertainty_deg": null
+        "translation_m": [0.24, 0.0, 0.07],
+        "rpy_deg": [0.0, 0.0, 0.0],
+        "measurement_uncertainty_m": 0.005,
+        "measurement_uncertainty_deg": 1.0
       }
     },
     "gripper": {
@@ -82,6 +92,7 @@
       "actual_height_px": null,
       "actual_fps": null,
       "actual_fourcc": null,
+      "buffer_size": 1,
       "exposure": null,
       "gain": null,
       "white_balance": null,
