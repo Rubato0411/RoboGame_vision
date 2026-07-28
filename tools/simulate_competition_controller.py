@@ -46,18 +46,18 @@ def main() -> int:
         ("block_1_aligned", 0.2, synthetic_vision(.2, target=True, aligned=True), RobotFeedback()),
         ("block_1_grasped", 0.3, None, RobotFeedback(grasp_confirmed=True)),
         ("block_1_stowed", 0.4, None, RobotFeedback(
-            cargo_stowed_confirmed=True, cargo_stowed_slot_id="cargo_left")),
+            cargo_stowed_confirmed=True, cargo_stowed_slot_id="cargo_right")),
         ("block_2_aligned", 0.5, synthetic_vision(.5, target=True, aligned=True), RobotFeedback()),
         ("block_2_grasped", 0.6, None, RobotFeedback(grasp_confirmed=True)),
         ("block_2_stowed", 0.7, None, RobotFeedback(
-            cargo_stowed_confirmed=True, cargo_stowed_slot_id="cargo_center")),
+            cargo_stowed_confirmed=True, cargo_stowed_slot_id="cargo_left")),
         ("block_3_aligned", 0.8, synthetic_vision(.8, target=True, aligned=True), RobotFeedback()),
         ("block_3_grasped", 0.9, None, RobotFeedback(grasp_confirmed=True)),
         ("block_3_stowed", 1.0, None, RobotFeedback(
-            cargo_stowed_confirmed=True, cargo_stowed_slot_id="cargo_right")),
+            cargo_stowed_confirmed=True, cargo_stowed_slot_id="cargo_center")),
         ("arrive_build", 1.1, None, RobotFeedback(at_build_zone=True)),
         ("cargo_retrieved", 1.2, None, RobotFeedback(
-            cargo_retrieved_confirmed=True, cargo_retrieved_slot_id="cargo_left")),
+            cargo_retrieved_confirmed=True, cargo_retrieved_slot_id="cargo_right")),
         ("placement_visible", 1.3, synthetic_vision(1.3, placement=True), RobotFeedback()),
         ("place_pose_reached", 1.4, None, RobotFeedback(place_pose_reached=True)),
         ("released", 1.5, None, RobotFeedback(

@@ -1,35 +1,35 @@
 {
   "schema_version": "1.0",
-  "status": "MEASURED",
+  "status": "MEASURED_NOT_VERIFIED",
   "coordinate_frame": "robot",
-  "instructions": "Mechanical/electrical team must replace null poses and verify each load/unload motion. Vision only sends cargo_slot_id.",
+  "instructions": "Poses are recorded in metres and degrees but remain unverified. Mechanical/electrical team must verify each load/unload motion before setting the flags true. Vision only sends cargo_slot_id.",
   "slots": [
     {
-      "slot_id": "cargo_left",
+      "slot_id": "cargo_right",
       "load_order": 1,
       "robot_from_slot": {
-        "translation_m": null,
-        "rpy_deg": null
+        "translation_m": [0.185, 0.145, 0.0],
+        "rpy_deg": [0.0, 0.0, 30.0]
+      },
+      "load_pose_verified": false,
+      "retrieve_pose_verified": false
+    },
+    {
+      "slot_id": "cargo_left",
+      "load_order": 2,
+      "robot_from_slot": {
+        "translation_m": [0.185, -0.145, 0.0],
+        "rpy_deg": [0.0, 0.0, -30.0]
       },
       "load_pose_verified": false,
       "retrieve_pose_verified": false
     },
     {
       "slot_id": "cargo_center",
-      "load_order": 2,
-      "robot_from_slot": {
-        "translation_m": null,
-        "rpy_deg": null
-      },
-      "load_pose_verified": false,
-      "retrieve_pose_verified": false
-    },
-    {
-      "slot_id": "cargo_right",
       "load_order": 3,
       "robot_from_slot": {
-        "translation_m": null,
-        "rpy_deg": null
+        "translation_m": [0.005, -0.11, 0.0],
+        "rpy_deg": [0.0, 0.0, 45.0]
       },
       "load_pose_verified": false,
       "retrieve_pose_verified": false

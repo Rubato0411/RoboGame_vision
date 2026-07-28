@@ -33,7 +33,7 @@ class CompetitionStrategyConfig:
 
     orange_blocks_before_roof: int = 2
     trip_capacity: int = 3
-    cargo_slot_ids: tuple[str, ...] = ("cargo_left", "cargo_center", "cargo_right")
+    cargo_slot_ids: tuple[str, ...] = ("cargo_right", "cargo_left", "cargo_center")
     target_loss_timeout_s: float = 2.0
     phase_timeout_s: float = 30.0
 

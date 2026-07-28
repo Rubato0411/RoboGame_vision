@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "status": "MEASURED_NOT_VERIFIED",
+  "coordinate_convention": "T_field_tag maps tag coordinates into the right-handed field frame; distances are metres; RPY is roll-pitch-yaw in degrees with R=Rz(yaw)*Ry(pitch)*Rx(roll).",
+  "tag_frame": {
+    "x_axis": "printed image right",
+    "y_axis": "printed image up",
+    "z_axis": "outward from printed face"
+  },
+  "assumptions_to_verify": [
+    "The supplied positions are tag-centre coordinates in metres.",
+    "Field Z points upward and all tags are vertically mounted with printed-up aligned to +Z.",
+    "The physical field-origin description and +X/+Y directions are documented and shared with the lower controller."
+  ],
+  "field_from_tags": {
+    "1": {
+      "configured": true,
+      "translation_m": [0.93, 0.3, 0.325],
+      "rpy_deg": [90.0, 0.0, 0.0],
+      "face_normal_field": [0.0, -1.0, 0.0]
+    },
+    "2": {
+      "configured": true,
+      "translation_m": [1.475, -0.595, 0.325],
+      "rpy_deg": [90.0, 0.0, -90.0],
+      "face_normal_field": [-1.0, 0.0, 0.0]
+    },
+    "3": {
+      "configured": true,
+      "translation_m": [2.9, -1.9, 0.325],
+      "rpy_deg": [90.0, 0.0, 0.0],
+      "face_normal_field": [0.0, -1.0, 0.0]
+    },
+    "4": {
+      "configured": true,
+      "translation_m": [4.05, -2.805, 0.325],
+      "rpy_deg": [90.0, 0.0, -90.0],
+      "face_normal_field": [-1.0, 0.0, 0.0]
+    },
+    "5": {
+      "configured": true,
+      "translation_m": [0.93, -3.7, 0.325],
+      "rpy_deg": [90.0, 0.0, 180.0],
+      "face_normal_field": [0.0, 1.0, 0.0]
+    },
+    "6": {
+      "configured": true,
+      "translation_m": [0.3, -2.805, 0.325],
+      "rpy_deg": [90.0, 0.0, 90.0],
+      "face_normal_field": [1.0, 0.0, 0.0]
+    }
+  }
+}

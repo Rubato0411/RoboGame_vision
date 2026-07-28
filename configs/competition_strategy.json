@@ -4,9 +4,9 @@
     "orange_blocks_before_roof": 2,
     "trip_capacity": 3,
     "cargo_slot_ids": [
+      "cargo_right",
       "cargo_left",
-      "cargo_center",
-      "cargo_right"
+      "cargo_center"
     ],
     "target_loss_timeout_s": 2.0,
     "phase_timeout_s": 30.0

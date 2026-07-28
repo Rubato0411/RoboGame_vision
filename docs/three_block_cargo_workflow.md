@@ -4,7 +4,7 @@
 
 ```text
 识别/抓取
-→ STOW_CARGO：依次放入 cargo_left、cargo_center、cargo_right
+→ STOW_CARGO：按实体编号依次放入 cargo_right、cargo_left、cargo_center
 → 收满三块后 GO_TO_BUILD
 → RETRIEVE_CARGO：从指定车载位置取出一块
 → 视觉定位并放置
@@ -18,7 +18,7 @@
 {
   "phase": "STOW_CARGO",
   "gripper_intent": "STOW_TO_CARGO",
-  "cargo_slot_id": "cargo_left"
+  "cargo_slot_id": "cargo_right"
 }
 ```
 
@@ -28,7 +28,7 @@
 {
   "phase": "RETRIEVE_CARGO",
   "gripper_intent": "RETRIEVE_FROM_CARGO",
-  "cargo_slot_id": "cargo_left"
+  "cargo_slot_id": "cargo_right"
 }
 ```
 
@@ -37,14 +37,14 @@
 ```json
 {
   "cargo_stowed_confirmed": true,
-  "cargo_stowed_slot_id": "cargo_left"
+  "cargo_stowed_slot_id": "cargo_right"
 }
 ```
 
 ```json
 {
   "cargo_retrieved_confirmed": true,
-  "cargo_retrieved_slot_id": "cargo_left"
+  "cargo_retrieved_slot_id": "cargo_right"
 }
 ```
 

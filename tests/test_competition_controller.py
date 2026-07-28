@@ -79,22 +79,22 @@ class CompetitionControllerTests(unittest.TestCase):
 
         decision = controller.step(None, RobotFeedback(grasp_confirmed=True), 0.3)
         self.assertEqual(decision.phase, CompetitionPhase.STOW_CARGO)
-        self.assertEqual(decision.cargo_slot_id, "cargo_left")
+        self.assertEqual(decision.cargo_slot_id, "cargo_right")
 
         decision = controller.step(
             None, RobotFeedback(cargo_stowed_confirmed=True,
-                                cargo_stowed_slot_id="cargo_left"), 0.35)
+                                cargo_stowed_slot_id="cargo_right"), 0.35)
         self.assertEqual(decision.phase, CompetitionPhase.NAVIGATE_TO_BUILD)
         self.assertEqual(controller.carried_colors, ["orange"])
-        self.assertEqual(controller.cargo_slots, {"cargo_left": "orange"})
+        self.assertEqual(controller.cargo_slots, {"cargo_right": "orange"})
 
         decision = controller.step(None, RobotFeedback(at_build_zone=True), 0.4)
         self.assertEqual(decision.phase, CompetitionPhase.RETRIEVE_CARGO)
-        self.assertEqual(decision.cargo_slot_id, "cargo_left")
+        self.assertEqual(decision.cargo_slot_id, "cargo_right")
 
         decision = controller.step(
             None, RobotFeedback(cargo_retrieved_confirmed=True,
-                                cargo_retrieved_slot_id="cargo_left"), 0.45)
+                                cargo_retrieved_slot_id="cargo_right"), 0.45)
         self.assertEqual(decision.phase, CompetitionPhase.LOCALIZE_BUILD)
 
         place = PlacementOutput(True, "building_1_layer_1", 1,
@@ -156,9 +156,9 @@ class CompetitionControllerTests(unittest.TestCase):
         controller.step(None, RobotFeedback(at_material_zone=True), 0.1)
 
         expected = [
+            ("orange", "cargo_right"),
             ("orange", "cargo_left"),
-            ("orange", "cargo_center"),
-            ("purple", "cargo_right"),
+            ("purple", "cargo_center"),
         ]
         now = 0.2
         for index, (color, cargo_slot) in enumerate(expected):
@@ -182,12 +182,12 @@ class CompetitionControllerTests(unittest.TestCase):
         self.assertEqual(decision.phase, CompetitionPhase.NAVIGATE_TO_BUILD)
         self.assertEqual(
             controller.cargo_slots,
-            {"cargo_left": "orange", "cargo_center": "orange",
-             "cargo_right": "purple"})
+            {"cargo_right": "orange", "cargo_left": "orange",
+             "cargo_center": "purple"})
 
         decision = controller.step(None, RobotFeedback(at_build_zone=True), now)
         self.assertEqual(decision.phase, CompetitionPhase.RETRIEVE_CARGO)
-        self.assertEqual(decision.cargo_slot_id, "cargo_left")
+        self.assertEqual(decision.cargo_slot_id, "cargo_right")
 
     def test_cargo_confirmation_must_match_commanded_slot(self):
         controller = CompetitionController(CompetitionRules())
