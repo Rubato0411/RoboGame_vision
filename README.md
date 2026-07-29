@@ -12,6 +12,9 @@
 >
 > 三方块依次装入车载槽位、到搭建区后逐块取出的状态机和电控接口见：
 > `docs/three_block_cargo_workflow.md`。
+>
+> 交付 STM32 底盘电控的职责边界、串口帧、字段合同、安全要求、黄金测试向量和
+> 分阶段联调操作见：`docs/stm32_chassis_handoff_guide.md`。
 
 项目提供统一的图片、视频和USB/UVC摄像头输入接口。检测算法始终从 `FramePacket.image` 获取图像，因此从离线视频切换到真实机器人摄像头时不需要重写检测器。
 
