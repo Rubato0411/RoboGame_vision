@@ -1,6 +1,7 @@
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 import cv2
 import numpy as np
@@ -51,6 +52,38 @@ class AprilTagDetectorTests(unittest.TestCase):
         detector = AprilTagDetector(AprilTagConfig(), calibration)
         with self.assertRaises(ValueError):
             detector.process(self.make_scene(1))
+
+    def test_rejects_unsupported_pose_image_rotation(self):
+        with self.assertRaisesRegex(ValueError, "must be 0 or 180"):
+            AprilTagDetector(AprilTagConfig(pose_image_rotation_deg=90))
+
+    def test_default_pose_corner_order_is_unchanged(self):
+        detector = AprilTagDetector(AprilTagConfig())
+        points = np.array([[10, 20], [30, 20], [30, 40], [10, 40]], np.float32)
+        np.testing.assert_array_equal(detector._pose_image_points(points), points)
+
+    def test_upside_down_pose_corner_order_is_rotated_180(self):
+        detector = AprilTagDetector(AprilTagConfig(pose_image_rotation_deg=180))
+        points = np.array([[10, 20], [30, 20], [30, 40], [10, 40]], np.float32)
+        np.testing.assert_array_equal(
+            detector._pose_image_points(points), points[[2, 3, 0, 1]])
+
+    def test_pose_uses_remapped_points_for_solve_and_reprojection_error(self):
+        calibration = CalibrationResult(
+            800, 600, np.array([[800., 0., 400.], [0., 800., 300.], [0., 0., 1.]]),
+            np.zeros(5), 0., 0., (), (), (), ChessboardSpec(),
+        )
+        detector = AprilTagDetector(
+            AprilTagConfig(pose_image_rotation_deg=180), calibration)
+        points = np.array([[10, 20], [30, 20], [30, 40], [10, 40]], np.float32)
+        expected = points[[2, 3, 0, 1]]
+        with (patch("src.apriltag_detector.cv2.solvePnP",
+                    return_value=(True, np.zeros((3, 1)), np.ones((3, 1)))) as solve,
+              patch("src.apriltag_detector.cv2.projectPoints",
+                    return_value=(expected.reshape(-1, 1, 2), None))):
+            pose = detector._estimate_pose(points, (600, 800))
+        np.testing.assert_array_equal(solve.call_args.args[1], expected)
+        self.assertEqual(pose[3], 0.0)
 
     def test_preview_is_scaled_without_changing_aspect_ratio(self):
         image = np.zeros((3000, 4000, 3), np.uint8)

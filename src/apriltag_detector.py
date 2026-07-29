@@ -17,6 +17,7 @@ class AprilTagConfig:
     allowed_ids: tuple[int, ...] = (1, 2, 3, 4, 5, 6)
     tag_size_m: float = 0.15
     upper_edge_height_m: float = 0.40
+    pose_image_rotation_deg: int = 0
     adaptive_thresh_win_size_min: int = 3
     adaptive_thresh_win_size_max: int = 23
     adaptive_thresh_win_size_step: int = 10
@@ -67,6 +68,8 @@ class AprilTagDetector:
             raise ValueError(f"Unsupported tag family: {config.family}")
         if config.tag_size_m <= 0:
             raise ValueError("tag_size_m must be positive")
+        if config.pose_image_rotation_deg not in (0, 180):
+            raise ValueError("pose_image_rotation_deg must be 0 or 180")
         self.config = config
         self.calibration = calibration
         self.dictionary = cv2.aruco.getPredefinedDictionary(self.DICTIONARIES[config.family])
@@ -143,8 +146,9 @@ class AprilTagDetector:
             [-half, half, 0], [half, half, 0],
             [half, -half, 0], [-half, -half, 0],
         ], dtype=np.float32)
+        pose_image_points = self._pose_image_points(image_points)
         ok, rvec, tvec = cv2.solvePnP(
-            object_points, image_points, self.calibration.camera_matrix,
+            object_points, pose_image_points, self.calibration.camera_matrix,
             self.calibration.distortion_coefficients, flags=cv2.SOLVEPNP_IPPE_SQUARE,
         )
         if not ok:
@@ -152,9 +156,24 @@ class AprilTagDetector:
         projected, _ = cv2.projectPoints(object_points, rvec, tvec,
                                          self.calibration.camera_matrix,
                                          self.calibration.distortion_coefficients)
-        error = float(np.sqrt(np.mean(np.sum((projected.reshape(-1, 2) - image_points) ** 2, axis=1))))
+        error = float(np.sqrt(np.mean(np.sum(
+            (projected.reshape(-1, 2) - pose_image_points) ** 2, axis=1))))
         vector = tvec.reshape(3).astype(np.float64)
         return rvec.reshape(3), vector, float(np.linalg.norm(vector)), error
+
+    def _pose_image_points(self, image_points: np.ndarray) -> np.ndarray:
+        """Map detector corner order to the physical upright tag frame.
+
+        The CSI front camera is installed upside down and currently delivers an
+        unrotated (180-degree inverted) image.  Detection remains in the source
+        pixels so calibration is unchanged, while pose correspondences are
+        shifted by two corners to keep the tag frame tied to its physical print
+        orientation rather than to the camera installation.
+        """
+        points = np.asarray(image_points, dtype=np.float32).reshape(4, 2)
+        if self.config.pose_image_rotation_deg == 180:
+            return points[[2, 3, 0, 1]]
+        return points
 
     def annotate(self, image_bgr: np.ndarray, detections: Iterable[AprilTagDetection]) -> np.ndarray:
         output = image_bgr.copy()

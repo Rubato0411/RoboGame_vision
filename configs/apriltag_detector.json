@@ -3,6 +3,7 @@
   "allowed_ids": [1, 2, 3, 4, 5, 6],
   "tag_size_m": 0.15,
   "upper_edge_height_m": 0.40,
+  "pose_image_rotation_deg": 180,
   "adaptive_thresh_win_size_min": 3,
   "adaptive_thresh_win_size_max": 23,
   "adaptive_thresh_win_size_step": 10,
