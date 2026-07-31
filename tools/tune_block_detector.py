@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from time import monotonic
 
 import cv2
 
@@ -183,32 +184,91 @@ def main() -> int:
 
     try:
         with ImageSource(parse_source(args.source), camera_config=camera, loop_video=args.loop) as source:
+            properties = source.properties()
+            source_fps = float(properties.get("fps", 0.0) or args.fps)
+            frame_interval_s = 1.0 / max(source_fps, 1.0)
+            total_frames = source.video_frame_count
+            if source.is_video:
+                duration_s = float(properties.get("duration_s", 0.0))
+                print(f"Video: fps={source_fps:.3f} frames={total_frames} "
+                      f"duration={duration_s:.3f}s")
+                if 0 < total_frames < 3:
+                    raise RuntimeError(
+                        f"video contains only {total_frames} frames; re-encode the source "
+                        "before tuning (a 30-second 30-FPS clip should contain about 900)")
+            paused = False
+            last_advanced_at = monotonic() - frame_interval_s
+
+            def read_next() -> bool:
+                nonlocal latest_frame, last_advanced_at
+                packet = source.read()
+                if packet is None:
+                    return False
+                latest_frame = packet.image
+                last_advanced_at = monotonic()
+                return True
+
+            def seek_and_read(frame_index: int) -> bool:
+                if not source.seek_video_frame(frame_index):
+                    return False
+                return read_next()
+
             while True:
-                if source.is_still_image or latest_frame is None:
-                    packet = source.read()
-                    if packet is None:
-                        break
-                    latest_frame = packet.image
-                elif not source.is_still_image:
-                    packet = source.read()
-                    if packet is None:
-                        break
-                    latest_frame = packet.image
+                now = monotonic()
+                should_advance = (
+                    latest_frame is None or
+                    source.is_camera or
+                    (source.is_video and not paused and
+                     now - last_advanced_at >= frame_interval_s)
+                )
+                if should_advance and not read_next():
+                    break
 
                 update_raw_from_controls(raw, active_color)
                 detector = make_detector(raw)
                 result = detector.process(latest_frame)
                 annotated = detector.annotate(latest_frame, result.detections)
+                if source.is_video:
+                    frame_status = (
+                        f"frame={source.video_frame_index + 1}/{total_frames or '?'} "
+                        f"{'PAUSED' if paused else 'PLAYING'}"
+                    )
+                else:
+                    frame_status = "LIVE" if source.is_camera else "STILL"
                 cv2.putText(annotated,
-                            f"active={active_color} detections={len(result.detections)} | C switch W save R reload Q quit",
+                            f"active={active_color} detections={len(result.detections)} "
+                            f"| {frame_status}",
                             (10, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.58, (0, 255, 0), 2)
+                cv2.putText(
+                    annotated,
+                    "SPACE pause | A/D step | J/L jump 30 | C color | W save | R reload | Q quit",
+                    (10, 55), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (0, 255, 0), 2)
                 panel = make_panel(annotated, result.masks[active_color],
                                    detector.combined_mask(result.masks), active_color)
                 cv2.imshow(RESULT_WINDOW, panel)
-                key = cv2.waitKey(20) & 0xFF
+                key = cv2.waitKey(5) & 0xFF
                 if key in (ord("q"), ord("Q"), 27):
                     break
-                if key in (ord("c"), ord("C")):
+                if key == ord(" ") and source.is_video:
+                    paused = not paused
+                    last_advanced_at = monotonic()
+                elif key in (ord("a"), ord("A")) and source.is_video:
+                    paused = True
+                    seek_and_read(source.video_frame_index - 1)
+                elif key in (ord("d"), ord("D")) and source.is_video:
+                    paused = True
+                    if not read_next() and args.loop:
+                        seek_and_read(0)
+                elif key in (ord("j"), ord("J")) and source.is_video:
+                    paused = True
+                    seek_and_read(source.video_frame_index - 30)
+                elif key in (ord("l"), ord("L")) and source.is_video:
+                    paused = True
+                    target = source.video_frame_index + 30
+                    if total_frames:
+                        target = min(target, total_frames - 1)
+                    seek_and_read(target)
+                elif key in (ord("c"), ord("C")):
                     update_raw_from_controls(raw, active_color)
                     active_color = "purple" if active_color == "orange" else "orange"
                     load_color_controls(raw, active_color)
