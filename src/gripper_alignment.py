@@ -8,6 +8,7 @@ from pathlib import Path
 @dataclass
 class GripperAlignmentConfig:
     grasp_reference_px: tuple[float, float] = (640.0, 360.0)
+    image_rotation_deg: int = 0
     max_dx_px: float = 12.0
     max_dy_px: float = 12.0
     max_angle_error_deg: float = 5.0
@@ -43,6 +44,8 @@ class GripperAligner:
         if (config.max_dx_px <= 0 or config.max_dy_px <= 0 or
                 config.max_angle_error_deg <= 0 or config.angle_symmetry_period_deg <= 0):
             raise ValueError("alignment tolerances must be positive")
+        if config.image_rotation_deg not in (0, 180):
+            raise ValueError("image_rotation_deg must be 0 or 180")
         self.config = config
 
     @classmethod
@@ -53,6 +56,14 @@ class GripperAligner:
               track_id: int | None = None, predicted: bool = False) -> GripperAlignmentResult:
         dx = float(center_px[0] - self.config.grasp_reference_px[0])
         dy = float(center_px[1] - self.config.grasp_reference_px[1])
+        # Keep detection/calibration in the raw camera image.  A camera mounted
+        # upside down rotates the output coordinate basis by 180 degrees, so
+        # both components of the displacement vector change sign.  The block
+        # angle needs no extra correction because its configured symmetry
+        # period is 90 degrees (and a 180-degree rotation is equivalent).
+        if self.config.image_rotation_deg == 180:
+            dx = -dx
+            dy = -dy
         centered = abs(dx) <= self.config.max_dx_px and abs(dy) <= self.config.max_dy_px
         period = self.config.angle_symmetry_period_deg
         raw_angle = float(angle_deg) - self.config.desired_angle_deg
