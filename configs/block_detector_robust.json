@@ -1,7 +1,44 @@
 {
-  "orange": {"hsv_lower": [5, 100, 70], "hsv_upper": [25, 255, 255], "draw_color_bgr": [0, 165, 255]},
-  "purple": {"hsv_lower": [125, 55, 45], "hsv_upper": [165, 255, 255], "draw_color_bgr": [255, 0, 180]},
-  "roi_normalized": [0.0, 0.0, 1.0, 1.0],
+  "orange": {
+    "hsv_lower": [
+      4,
+      100,
+      70
+    ],
+    "hsv_upper": [
+      26,
+      255,
+      255
+    ],
+    "draw_color_bgr": [
+      0,
+      165,
+      255
+    ]
+  },
+  "purple": {
+    "hsv_lower": [
+      115,
+      55,
+      45
+    ],
+    "hsv_upper": [
+      175,
+      255,
+      255
+    ],
+    "draw_color_bgr": [
+      255,
+      0,
+      180
+    ]
+  },
+  "roi_normalized": [
+    0.0,
+    0.0,
+    1.0,
+    1.0
+  ],
   "gamma": 1.0,
   "clahe_enabled": false,
   "clahe_clip_limit": 2.0,
@@ -10,10 +47,10 @@
   "morph_kernel": 5,
   "open_iterations": 1,
   "close_iterations": 2,
-  "min_area_px": 500,
+  "min_area_px": 12878,
   "max_area_ratio": 0.7,
-  "min_aspect_ratio": 0.45,
-  "max_aspect_ratio": 2.7,
+  "min_aspect_ratio": 1.21,
+  "max_aspect_ratio": 2.51,
   "min_rectangularity": 0.35,
   "min_rotated_rectangularity": 0.6,
   "min_solidity": 0.75,
@@ -23,7 +60,7 @@
   "nms_iou_threshold": 0.35,
   "split_touching_enabled": true,
   "split_peak_ratio": 0.52,
-  "split_erosion_ratio": 0.10,
+  "split_erosion_ratio": 0.1,
   "split_max_erosion_iterations": 48,
   "split_min_seed_area_px": 80,
   "split_min_region_area_px": 300
