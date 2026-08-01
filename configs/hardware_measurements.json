@@ -178,7 +178,7 @@
   },
   "placement": {
     "verified": false,
-    "building_zone_reference_tag_id": null,
+    "building_zone_reference_tag_id": 6,
     "slot_transforms_tag_m": null,
     "approach_offset_m": null,
     "release_offset_m": null,
