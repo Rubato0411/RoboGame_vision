@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0",
+  "status": "2D_ALIGNMENT_ACCEPTED_3D_BLOCKED",
+  "camera_role": "gripper",
+  "camera": {
+    "model": "Raspberry Pi Camera Module 3 IMX708",
+    "picamera2_index": 0,
+    "image_size_px": [1280, 720],
+    "image_rotation_deg": 180,
+    "exposure_time_us": 10000,
+    "analogue_gain": 1.5,
+    "colour_gains": [1.65, 2.16],
+    "lens_position": 1.4
+  },
+  "intrinsics_measured": {
+    "camera_matrix": [
+      [1441.013264477304, 0.0, 660.6045985797426],
+      [0.0, 1438.445153070286, 348.9239079699908],
+      [0.0, 0.0, 1.0]
+    ],
+    "distortion_coefficients": [
+      0.00474502920666617,
+      0.29170393461007876,
+      -0.00315244698240893,
+      0.0035275762615902145,
+      -0.590662189469847
+    ],
+    "mean_reprojection_error_px": 0.151,
+    "used_image_count": 45,
+    "runtime_calibration_file": null,
+    "runtime_file_blocker": "The original CalibrationResult JSON must be committed as configs/calibration_gripper.json; do not use calibration_front.json."
+  },
+  "block_detection": {
+    "configuration_file": "configs/block_detector_robust.json",
+    "colors": ["orange", "purple"],
+    "accepted_scope": "real-camera 2D detection and tuning"
+  },
+  "alignment_2d": {
+    "configuration_file": "configs/gripper_alignment.json",
+    "implementation_file": "src/gripper_alignment.py",
+    "grasp_reference_px": [766.43, 261.43],
+    "max_dx_px": 12.0,
+    "max_dy_px": 12.0,
+    "max_angle_error_deg": 5.0,
+    "minimum_confidence": 0.7,
+    "output_convention": "After 180-degree image correction: dx_px positive means target right of reference; dy_px positive means target below reference.",
+    "accepted": true
+  },
+  "electrical_assistance_required": {
+    "hand_eye_calibration": {
+      "required": true,
+      "assumed_mount": "eye_in_hand_camera_rigidly_attached_to_end_effector",
+      "required_transform": "T_tool_camera",
+      "electrical_inputs": [
+        "timestamped T_robot_tool for every calibration sample",
+        "tool/base frame definitions and units",
+        "safe low-speed jog and settle-complete signal",
+        "joint/encoder state and pose repeatability result"
+      ]
+    },
+    "grasp_3d_acceptance": {
+      "required": true,
+      "blocked_until": [
+        "configs/calibration_gripper.json exists and loads",
+        "T_tool_camera is calibrated",
+        "timestamped T_robot_tool reaches the vision pipeline",
+        "support-plane height and 0.10 m block geometry are verified"
+      ],
+      "required_tests": [
+        "known-point XYZ error test without closing gripper",
+        "low-speed approach test with clearance",
+        "multi-position and multi-arm-pose repeatability test",
+        "final grasp_point_robot_m sign, units and tolerance test"
+      ]
+    }
+  },
+  "not_accepted": [
+    "hand-eye transform",
+    "runtime robot-frame 3D grasp_point_robot_m",
+    "arm-axis mapping from dx_px/dy_px",
+    "closed-loop grasp success rate",
+    "collision-safe approach/retract trajectory",
+    "cargo load/retrieve motion"
+  ]
+}

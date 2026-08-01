@@ -81,8 +81,8 @@
       "model": "Raspberry Pi Camera Module 3 IMX708",
       "serial_number": null,
       "device_path": 0,
-      "calibration_file": "configs/calibration_front.json",
-      "coordinate_geometry_file": "configs/coordinate_front.json",
+      "calibration_file": null,
+      "coordinate_geometry_file": null,
       
       "backend": "picamera2",
       "requested_width_px": 1280,
