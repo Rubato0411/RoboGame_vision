@@ -81,7 +81,7 @@
       "model": "Raspberry Pi Camera Module 3 IMX708",
       "serial_number": null,
       "device_path": 0,
-      "calibration_file": null,
+      "calibration_file": "configs/calibration_gripper.json",
       "coordinate_geometry_file": null,
       
       "backend": "picamera2",
