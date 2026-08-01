@@ -1,5 +1,5 @@
 {
-  "grasp_reference_px": [640.0, 360.0],
+  "grasp_reference_px":[766.43, 261.43],
   "image_rotation_deg": 180,
   "max_dx_px": 12.0,
   "max_dy_px": 12.0,
