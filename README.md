@@ -15,6 +15,10 @@
 >
 > 交付 STM32 底盘电控的职责边界、串口帧、字段合同、安全要求、黄金测试向量和
 > 分阶段联调操作见：`docs/stm32_chassis_handoff_guide.md`。
+>
+> 夹爪二维视觉交付、手眼标定的电控配合项及三维抓取坐标联合验收见：
+> `docs/gripper_vision_electrical_handoff.md`，机器可读状态见
+> `configs/gripper_electrical_handoff.json`。
 
 项目提供统一的图片、视频和USB/UVC摄像头输入接口。检测算法始终从 `FramePacket.image` 获取图像，因此从离线视频切换到真实机器人摄像头时不需要重写检测器。
 
