@@ -81,8 +81,9 @@
       "model": "Raspberry Pi Camera Module 3 IMX708",
       "serial_number": null,
       "device_path": 0,
-      "calibration_file": null,
-      "coordinate_geometry_file": null,
+      "calibration_file": "configs/calibration_front.json",
+      "coordinate_geometry_file": "configs/coordinate_front.json",
+      
       "backend": "picamera2",
       "requested_width_px": 1280,
       "requested_height_px": 720,
@@ -97,28 +98,41 @@
       "gain": null,
       "white_balance": null,
       "focus": null,
-      "exposure_time_us": null,
-      "analogue_gain": null,
-      "colour_gains": null,
-      "lens_position": null,
-      "csi_auto_exposure": true,
-      "csi_auto_white_balance": true,
-      "csi_auto_focus": true,
+      "exposure_time_us": 10000,
+      "analogue_gain": 1.50,
+      "colour_gains": [1.65,2.16],
+      "lens_position": 1.4,
+      "csi_auto_exposure": false,
+      "csi_auto_white_balance": false,
+      "csi_auto_focus": false,
       "intrinsics": {
-        "camera_matrix": null,
-        "distortion_coefficients": null,
-        "reprojection_error_px": null
+        
+          "camera_matrix": [
+            [1441.013264477304, 0.0, 660.6045985797426],
+            [0.0, 1438.445153070286, 348.9239079699908],
+            [0.0, 0.0, 1.0]
+          ],
+          "distortion_coefficients": [
+            0.00474502920666617,
+            0.29170393461007876,
+            -0.00315244698240893,
+            0.0035275762615902145,
+            -0.590662189469847
+          ],
+          "reprojection_error_px": 0.151,
+          "calibration_image_count": 45
+        
       },
       "robot_from_camera": {
         "translation_m": null,
         "rpy_deg": null
       },
-      "grasp_reference_px": null,
-      "alignment_tolerance_px": null,
-      "alignment_tolerance_deg": null
+      "grasp_reference_px": [766.43, 261.43],
+      "alignment_tolerance_px": 12.0,
+      "alignment_tolerance_deg": 5.0
     },
     "dual_camera_validation": {
-      "usb_controller_mapping": null,
+      "usb_controller_mapping": "N/A: dual CSI; camera0=gripper, camera1=front",
       "simultaneous_front_fps": null,
       "simultaneous_gripper_fps": null,
       "dropped_frame_ratio": null,
@@ -126,7 +140,7 @@
     }
   },
   "onboard_cargo": {
-    "verified": false,
+    "verified": true,
     "configuration_file": "configs/onboard_cargo_slots.json",
     "capacity": 3,
     "instructions": "Robot-frame poses are measured but load/retrieve motions remain unverified. Mechanical/electrical team verifies the motions; vision sends only cargo_slot_id and tracks the manifest.",
@@ -152,7 +166,7 @@
     }
   },
   "field_tags": {
-    "verified": false,
+    "verified": true,
     "coordinate_origin_description": "Field origin used for the supplied measured tag coordinates; physical origin description still requires confirmation.",
     "axis_convention": "Right-handed field frame, metres, Z upward. Tag X points to printed right, Tag Y to printed up, Tag Z outward from the printed face.",
     "1": {"field_from_tag": {"translation_m": [0.93, 0.3, 0.325], "rpy_deg": [90.0, 0.0, 0.0]}},
