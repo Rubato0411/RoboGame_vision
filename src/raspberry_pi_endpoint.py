@@ -7,6 +7,7 @@ from typing import Mapping
 from .communication_protocol import (MessageType, PacketStreamDecoder,
                                      ProtocolPacket, encode_json_packet)
 from .vision_output import VisionMode, VisionOutput
+from .competition_controller import RobotFeedback
 
 
 @dataclass(frozen=True)
@@ -66,6 +67,7 @@ class RaspberryPiVisionEndpoint:
                     events.append(EndpointEvent("heartbeat", packet.sequence, payload))
                     responses.append(self._ack(packet, True, "heartbeat"))
                 elif packet.message_type == MessageType.ROBOT_FEEDBACK:
+                    RobotFeedback.from_mapping(payload)
                     events.append(EndpointEvent("robot_feedback", packet.sequence, payload))
                     responses.append(self._ack(packet, True, "robot_feedback"))
                 elif packet.message_type == MessageType.START_SIGNAL:

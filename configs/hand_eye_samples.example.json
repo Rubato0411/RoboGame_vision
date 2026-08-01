@@ -1,0 +1,12 @@
+{
+  "format_version": 1,
+  "mode": "eye_in_hand",
+  "length_unit": "m",
+  "rotation_convention": "rpy_deg uses Rz(yaw) @ Ry(pitch) @ Rx(roll)",
+  "target": {
+    "type": "fixed_apriltag",
+    "tag_id": null,
+    "tag_size_m": null
+  },
+  "samples": []
+}

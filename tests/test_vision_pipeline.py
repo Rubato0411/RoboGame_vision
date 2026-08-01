@@ -10,6 +10,10 @@ sys.path.insert(0, str(ROOT))
 
 from src.apriltag_detector import AprilTagConfig, AprilTagDetector  # noqa: E402
 from src.black_line_detector import BlackLineConfig, BlackLineDetector  # noqa: E402
+from src.block_pose_estimator import BlockPoseEstimate  # noqa: E402
+from src.coordinate_transform import RigidTransform  # noqa: E402
+from src.block_pose_estimator import BlockPoseEstimate  # noqa: E402
+from src.coordinate_transform import RigidTransform  # noqa: E402
 from src.block_detector_robust import BlockDetector  # noqa: E402
 from src.image_source import FramePacket  # noqa: E402
 from src.stream_health import StreamHealthConfig, StreamHealthMonitor  # noqa: E402
@@ -47,6 +51,54 @@ class VisionPipelineTests(unittest.TestCase):
         self.assertEqual(len(output.blocks), 1)
         self.assertEqual(output.blocks[0].color, "orange")
         self.assertIsNone(output.blocks[0].position_robot_m)
+
+    def test_dynamic_gripper_pose_gates_robot_coordinates(self):
+        class FakePoseEstimator:
+            def estimate(self, detection, transform_robot_camera=None):
+                self_transform = transform_robot_camera
+                return BlockPoseEstimate(
+                    True, tuple(self_transform.translation),
+                    tuple(self_transform.translation), (0.0, 0.0), 0.0, "ok")
+
+        image = np.full((480, 640, 3), 180, np.uint8)
+        cv2.rectangle(image, (200, 180), (340, 330), (0, 140, 255), -1)
+        pipeline = self.make_pipeline()
+        pipeline.block_pose_estimator = FakePoseEstimator()
+        pipeline.dynamic_camera_transform_required = True
+        without_pose = pipeline.process(self.frame(image), VisionMode.FIND_BLOCKS)
+        self.assertIsNone(without_pose.blocks[0].position_robot_m)
+
+        pipeline.reset()
+        transform = RigidTransform.from_xyz_rpy([0.2, -0.1, 0.4], [0, 0, 0])
+        with_pose = pipeline.process(
+            self.frame(image, 1), VisionMode.FIND_BLOCKS,
+            transform_robot_camera=transform)
+        np.testing.assert_allclose(with_pose.blocks[0].position_robot_m,
+                                   transform.translation)
+
+    def test_dynamic_gripper_pose_gates_robot_coordinates(self):
+        class FakePoseEstimator:
+            def estimate(self, detection, transform_robot_camera=None):
+                self_transform = transform_robot_camera
+                return BlockPoseEstimate(
+                    True, tuple(self_transform.translation),
+                    tuple(self_transform.translation), (0.0, 0.0), 0.0, "ok")
+
+        image = np.full((480, 640, 3), 180, np.uint8)
+        cv2.rectangle(image, (200, 180), (340, 330), (0, 140, 255), -1)
+        pipeline = self.make_pipeline()
+        pipeline.block_pose_estimator = FakePoseEstimator()
+        pipeline.dynamic_camera_transform_required = True
+        without_pose = pipeline.process(self.frame(image), VisionMode.FIND_BLOCKS)
+        self.assertIsNone(without_pose.blocks[0].position_robot_m)
+
+        pipeline.reset()
+        transform = RigidTransform.from_xyz_rpy([0.2, -0.1, 0.4], [0, 0, 0])
+        with_pose = pipeline.process(
+            self.frame(image, 1), VisionMode.FIND_BLOCKS,
+            transform_robot_camera=transform)
+        np.testing.assert_allclose(with_pose.blocks[0].position_robot_m,
+                                   transform.translation)
 
     def test_localization_outputs_tag_without_pose_when_unconfigured(self):
         dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_36h11)

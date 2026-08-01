@@ -52,3 +52,34 @@ class CommunicationRuntimeTests(unittest.TestCase):
         runtime.poll(now_s=1.0)
         self.assertGreater(len(stream.outgoing), first_size)
 
+    def test_valid_gripper_pose_feedback_is_accepted(self):
+        stream = FakeStream()
+        stream.incoming.extend(encode_json_packet(
+            MessageType.ROBOT_FEEDBACK, 9, {
+                "gripper_pose": {
+                    "valid": True,
+                    "sample_sequence": 12,
+                    "translation_m": [0.2, -0.1, 0.4],
+                    "rpy_deg": [5.0, -10.0, 20.0],
+                }
+            }))
+        result = PiCommunicationRuntime(stream).poll(now_s=0.0)
+        self.assertEqual(result.events[0].kind, "robot_feedback")
+
+    def test_invalid_gripper_pose_feedback_is_nacked(self):
+        stream = FakeStream()
+        stream.incoming.extend(encode_json_packet(
+            MessageType.ROBOT_FEEDBACK, 10, {
+                "gripper_pose": {
+                    "valid": True,
+                    "sample_sequence": 12,
+                    "translation_m": [200, 100],
+                    "rpy_deg": [0, 0, 0],
+                }
+            }))
+        result = PiCommunicationRuntime(stream).poll(now_s=0.0)
+        self.assertEqual(result.events[0].kind, "invalid_command")
+        packets = PacketStreamDecoder().feed(stream.outgoing)
+        ack = packets[0].json()
+        self.assertFalse(ack["accepted"])
+

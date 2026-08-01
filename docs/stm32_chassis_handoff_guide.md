@@ -451,6 +451,11 @@ crc_errors=0
 
 ### 阶段 C：真实 UART、不接电机
 
+若夹爪相机需要机器人坐标中的三维抓取点，STM32还必须按
+`communication_protocol_v1.md` 发送 `RobotFeedback.gripper_pose`。该字段是
+`T_robot_gripper`，平移单位m、角度单位deg、RPY顺序为 Roll/Pitch/Yaw。建议至少50 Hz
+更新，并在每个新运动学解上递增 `sample_sequence`；重复发送旧序号不能刷新姿态时效。
+
 1. 共地并确认电平；
 2. TX/RX 交叉连接；
 3. 确认树莓派串口未被登录控制台占用；
