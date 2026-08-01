@@ -298,6 +298,33 @@ class ImageSource:
     def is_camera(self) -> bool:
         return self._is_camera
 
+    @property
+    def is_video(self) -> bool:
+        return (not self._is_camera and self._still_image is None and
+                self._capture is not None)
+
+    @property
+    def video_frame_count(self) -> int:
+        if not self.is_video or self._capture is None:
+            return 0
+        return max(int(self._capture.get(cv2.CAP_PROP_FRAME_COUNT)), 0)
+
+    @property
+    def video_frame_index(self) -> int:
+        """Zero-based index of the most recently decoded video frame."""
+        if not self.is_video or self._capture is None:
+            return 0
+        return max(int(round(self._capture.get(cv2.CAP_PROP_POS_FRAMES))) - 1, 0)
+
+    def seek_video_frame(self, frame_index: int) -> bool:
+        """Position a file-backed video so the next read returns frame_index."""
+        if not self.is_video or self._capture is None:
+            return False
+        total = self.video_frame_count
+        upper = max(total - 1, 0) if total else max(int(frame_index), 0)
+        target = min(max(int(frame_index), 0), upper)
+        return bool(self._capture.set(cv2.CAP_PROP_POS_FRAMES, target))
+
     def properties(self) -> dict[str, object]:
         if self._still_image is not None:
             height, width = self._still_image.shape[:2]
@@ -328,6 +355,10 @@ class ImageSource:
             "backend": self._capture.getBackendName(),
             "buffer_size": self._capture.get(cv2.CAP_PROP_BUFFERSIZE),
         }
+        if self.is_video:
+            result["frame_count"] = self.video_frame_count
+            fps = float(result["fps"])
+            result["duration_s"] = self.video_frame_count / fps if fps > 0 else 0.0
         for name, prop in self.CONTROL_PROPERTIES.items():
             result[name] = self._capture.get(prop)
         return result
