@@ -1,8 +1,8 @@
 {
   "grasp_reference_px":[766.43, 261.43],
-  "max_dx_px": 12.0,
-  "max_dy_px": 12.0,
-  "max_angle_error_deg": 5.0,
+  "max_dx_px": 10.0,
+  "max_dy_px": 10.0,
+  "max_angle_error_deg": 4.0,
   "desired_angle_deg": 0.0,
   "angle_symmetry_period_deg": 90.0,
   "minimum_confidence": 0.70,

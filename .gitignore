@@ -124,3 +124,6 @@ install/
 !.env.example
 *.pem
 *.key
+data/
+*.bak
+configs/calibration_*.json

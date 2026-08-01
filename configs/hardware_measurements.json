@@ -128,8 +128,8 @@
         "rpy_deg": null
       },
       "grasp_reference_px": [766.43, 261.43],
-      "alignment_tolerance_px": 12.0,
-      "alignment_tolerance_deg": 5.0
+      "alignment_tolerance_px": [10.0, 10.0],
+      "alignment_tolerance_deg": 4.0
     },
     "dual_camera_validation": {
       "usb_controller_mapping": "N/A: dual CSI; camera0=gripper, camera1=front",
