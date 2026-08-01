@@ -18,6 +18,17 @@ class GripperAndTargetTests(unittest.TestCase):
         self.assertFalse(aligner.align((700, 355), 3, .9, 2).aligned)
         self.assertFalse(aligner.align((646, 355), 3, .9, 2, predicted=True).valid)
 
+    def test_upside_down_camera_reverses_both_position_errors(self):
+        aligner = GripperAligner(GripperAlignmentConfig(image_rotation_deg=180))
+        result = aligner.align((650, 340), 3, .9, 2)
+        self.assertEqual(result.dx_px, -10.0)
+        self.assertEqual(result.dy_px, 20.0)
+        self.assertEqual(result.angle_error_deg, 3.0)
+
+    def test_rejects_unsupported_image_rotation(self):
+        with self.assertRaises(ValueError):
+            GripperAligner(GripperAlignmentConfig(image_rotation_deg=90))
+
     def test_target_selector_filters_color_and_prefers_confidence(self):
         blocks = [
             BlockOutput(1, "purple", True, False, (640, 300), (0, 0, 10, 10), None, .99),

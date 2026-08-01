@@ -38,6 +38,11 @@ VisionOutput
 - `valid=false`：下游不得使用该结果控制机器人
 - `predicted=true`：短时遮挡期间由跟踪器保留，并非当前帧直接检测
 
+`gripper_alignment.dx_px/dy_px` 是一个例外：它们是根据
+`configs/gripper_alignment.json` 的 `image_rotation_deg` 修正后的对准误差。
+夹爪相机倒置且该值为 `180` 时，两项误差均已在视觉端反号；下位机不得再次根据
+画面倒置重复反号。`blocks[].center_px` 等绝对像素坐标仍属于未经旋转的原始图像。
+
 ## 顶层字段
 
 ```json
