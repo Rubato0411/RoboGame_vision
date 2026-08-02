@@ -81,7 +81,7 @@
       "model": "Raspberry Pi Camera Module 3 IMX708",
       "serial_number": null,
       "device_path": 0,
-      "calibration_file": null,
+      "calibration_file": "configs/calibration_gripper.json",
       "coordinate_geometry_file": null,
       "hand_eye_calibration_file": null,
       
@@ -129,8 +129,8 @@
         "rpy_deg": null
       },
       "grasp_reference_px": [766.43, 261.43],
-      "alignment_tolerance_px": 12.0,
-      "alignment_tolerance_deg": 5.0
+      "alignment_tolerance_px": [10.0, 10.0],
+      "alignment_tolerance_deg": 4.0
     },
     "dual_camera_validation": {
       "usb_controller_mapping": "N/A: dual CSI; camera0=gripper, camera1=front",
@@ -179,7 +179,7 @@
   },
   "placement": {
     "verified": false,
-    "building_zone_reference_tag_id": null,
+    "building_zone_reference_tag_id": 6,
     "slot_transforms_tag_m": null,
     "approach_offset_m": null,
     "release_offset_m": null,
