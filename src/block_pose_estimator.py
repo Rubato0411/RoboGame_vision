@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from .block_detector_robust import BlockDetection
-from .coordinate_transform import CoordinateTransformer
+from .coordinate_transform import CoordinateTransformer, RigidTransform
 
 
 @dataclass(frozen=True)
@@ -29,12 +29,13 @@ class BlockPoseEstimator:
         self.cube_size_m = cube_size_m
         self.support_plane_height_m = support_plane_height_m
 
-    def estimate(self, detection: BlockDetection) -> BlockPoseEstimate:
+    def estimate(self, detection: BlockDetection,
+                 transform_robot_camera: RigidTransform | None = None) -> BlockPoseEstimate:
         x, y, width, height = detection.bbox
         contact_pixel = (x + width/2.0, y + height - 1.0)
         try:
             contact = self.coordinates.pixel_to_plane(
-                contact_pixel, self.coordinates.transform_robot_camera,
+                contact_pixel, transform_robot_camera or self.coordinates.transform_robot_camera,
                 plane_normal_target=(0, 0, 1),
                 plane_offset=-self.support_plane_height_m,
             )

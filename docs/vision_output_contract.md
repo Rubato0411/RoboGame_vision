@@ -70,6 +70,10 @@ v1.2在每个`blocks[]`元素中新增：
 - `grasp_point_robot_m`：规则尺寸和支撑平面约束得到的方块顶面抓取点；未标定时为`null`。
 - `yaw_image_deg`：方块在图像中的旋转矩形角度，仅作对准初值。
 
+夹爪相机为眼在手上结构时，`position_robot_m` 和 `grasp_point_robot_m` 仅在收到新鲜、
+有效的 `RobotFeedback.gripper_pose` 且已加载 `T_gripper_camera` 时输出。姿态丢失、重复
+序号超时或手眼文件未配置时，两字段必须为 `null`；像素检测和二维对准仍可继续输出。
+
 ## 安全规则
 
 视频流为 `FROZEN`、`STALE_FRAME`、`INVALID_FRAME`、`TIMEOUT` 或 `DISCONNECTED` 时：

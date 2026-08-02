@@ -83,6 +83,7 @@
       "device_path": 0,
       "calibration_file": "configs/calibration_gripper.json",
       "coordinate_geometry_file": null,
+      "hand_eye_calibration_file": null,
       
       "backend": "picamera2",
       "requested_width_px": 1280,
@@ -198,6 +199,7 @@
     "verified": false,
     "heartbeat_timeout_s": null,
     "command_timeout_s": null,
+    "gripper_pose_timeout_s": null,
     "physical_estop_cuts_all_actuators": null,
     "camera_failure_safe_stop_tested": null,
     "vision_process_crash_safe_stop_tested": null,

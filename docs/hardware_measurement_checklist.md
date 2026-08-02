@@ -99,6 +99,11 @@
 
 确认有线链路类型、设备路径、波特率、反馈频率和命令频率。实测后填写：
 
+- `cameras.gripper.hand_eye_calibration_file`：已验收的 `T_gripper_camera` 结果文件；
+- `safety.gripper_pose_timeout_s`：实时末端位姿最大允许年龄，初值建议 0.15 s；
+- STM32 `RobotFeedback.gripper_pose` 反馈频率、单位、RPY顺序和正方向；
+- 重复 `sample_sequence`、无效姿态和通信中断时三维抓取坐标失效测试。
+
 - 心跳超时；
 - 命令超时；
 - 最大分包/粘包情况；

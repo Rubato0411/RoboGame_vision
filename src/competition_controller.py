@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 import json
 from pathlib import Path
+import math
 
 from .competition_rules import CompetitionRules
 from .vision_output import VisionMode, VisionOutput
@@ -61,6 +62,40 @@ class CompetitionStrategyConfig:
 
 
 @dataclass(frozen=True)
+class GripperPoseFeedback:
+    """Latest STM32 sample of T_base_gripper; lengths are metres, RPY degrees."""
+
+    valid: bool = False
+    sample_sequence: int | None = None
+    translation_m: tuple[float, float, float] | None = None
+    rpy_deg: tuple[float, float, float] | None = None
+
+    @classmethod
+    def from_mapping(cls, value) -> "GripperPoseFeedback":
+        if value is None:
+            return cls()
+        if not isinstance(value, dict):
+            raise ValueError("gripper_pose must be an object or null")
+        valid = bool(value.get("valid", False))
+        if not valid:
+            return cls(False)
+        sequence = value.get("sample_sequence")
+        translation = value.get("translation_m")
+        rpy = value.get("rpy_deg")
+        if (not isinstance(sequence, int) or isinstance(sequence, bool) or
+                not 0 <= sequence <= 0xFFFFFFFF):
+            raise ValueError("valid gripper_pose requires uint32 sample_sequence")
+        for name, vector in (("translation_m", translation), ("rpy_deg", rpy)):
+            if not isinstance(vector, (list, tuple)) or len(vector) != 3:
+                raise ValueError(f"valid gripper_pose requires three-value {name}")
+            if not all(isinstance(item, (int, float)) and not isinstance(item, bool) and
+                       math.isfinite(float(item)) for item in vector):
+                raise ValueError(f"gripper_pose {name} must contain finite numbers")
+        return cls(True, sequence, tuple(float(v) for v in translation),
+                   tuple(float(v) for v in rpy))
+
+
+@dataclass(frozen=True)
 class RobotFeedback:
     """Hardware feedback consumed by the high-level controller.
 
@@ -85,9 +120,12 @@ class RobotFeedback:
     structure_stable: bool = False
     robot_in_start_zone: bool = False
     recovery_acknowledged: bool = False
+    gripper_pose: GripperPoseFeedback = GripperPoseFeedback()
 
     @classmethod
     def from_mapping(cls, value: dict) -> "RobotFeedback":
+        if not isinstance(value, dict):
+            raise ValueError("RobotFeedback payload must be an object")
         allowed = cls.__dataclass_fields__
         converted = {}
         for key, item in value.items():
@@ -95,8 +133,12 @@ class RobotFeedback:
                 continue
             if key in {"cargo_stowed_slot_id", "cargo_retrieved_slot_id"}:
                 converted[key] = str(item) if item not in (None, "") else None
+            elif key == "gripper_pose":
+                converted[key] = GripperPoseFeedback.from_mapping(item)
             else:
-                converted[key] = bool(item)
+                if not isinstance(item, bool):
+                    raise ValueError(f"RobotFeedback field {key} must be boolean")
+                converted[key] = item
         return cls(**converted)
 
 

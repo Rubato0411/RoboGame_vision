@@ -122,7 +122,50 @@ python tools\simulate_communication.py `
 波特率及超时从`hardware_measurements.json`读取。正式比赛中该控制链路应为车内有线链路；无线端
 只能接收监控信息。
 
-## 7. 尚未绑定的硬件
+## 7. 机械臂末端实时位姿（眼在手上夹爪相机）
+
+当夹爪视觉需要输出机器人坐标中的三维方块位置时，STM32必须在 `RobotFeedback` 中加入：
+
+```json
+{
+  "gripper_pose": {
+    "valid": true,
+    "sample_sequence": 1234,
+    "translation_m": [0.250, -0.100, 0.350],
+    "rpy_deg": [10.0, -15.0, 25.0]
+  }
+}
+```
+
+| 字段 | 类型 | 含义 |
+|---|---|---|
+| `valid` | bool | 本周期末端位姿是否可用 |
+| `sample_sequence` | uint32 | STM32每生成一个新末端姿态递增一次；重发旧数据不得递增 |
+| `translation_m` | 3个有限浮点数 | `T_robot_gripper` 平移，单位m |
+| `rpy_deg` | 3个有限浮点数 | Roll/Pitch/Yaw，单位deg，旋转顺序 `Rz(yaw) @ Ry(pitch) @ Rx(roll)` |
+
+这里必须发送 `T_robot_gripper`（夹爪坐标到机器人坐标），不能发送其逆变换
+`T_gripper_robot`。姿态无效时应发送：
+
+```json
+"gripper_pose": {"valid": false}
+```
+
+树莓派只在 `sample_sequence` 改变时刷新姿态接收时间。重复发送相同序号不会延长有效期。
+超过 `safety.gripper_pose_timeout_s` 后，三维抓取坐标立即失效并输出 `null`。推荐 STM32
+反馈频率不低于 50 Hz，超时初值 0.15 s；最终数值必须结合端到端延迟实测。序号允许
+从 `0xFFFFFFFF` 回绕到0。
+
+树莓派动态计算：
+
+```text
+T_robot_camera(q) = T_robot_gripper(q) × T_gripper_camera
+```
+
+格式错误（数组长度错误、NaN/Infinity、非布尔状态或非法序号）会收到
+`ACK accepted=false`。STM32不能因为通信ACK成功就认为机械动作成功。
+
+## 8. 尚未绑定的硬件
 
 当前没有加入：
 

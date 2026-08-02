@@ -10,6 +10,7 @@ from src.competition_controller import CompetitionController
 from src.competition_runtime import CompetitionRuntime
 from src.hardware_config import HardwareMeasurementConfig
 from src.image_source import CameraConfig, ImageSource
+from src.hand_eye_calibration import load_gripper_from_camera
 from src.raspberry_pi_endpoint import RaspberryPiVisionEndpoint
 from src.vision_pipeline import VisionPipeline, VisionPipelinePaths
 
@@ -34,7 +35,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--front-calibration")
     parser.add_argument("--front-coordinates")
     parser.add_argument("--gripper-calibration")
-    parser.add_argument("--gripper-coordinates")
+    parser.add_argument("--gripper-hand-eye",
+                        help="Eye-in-hand calibration JSON containing T_gripper_camera")
     parser.add_argument("--serial-port",
                         help="Wired lower-controller serial device")
     parser.add_argument("--serial-baud", type=int)
@@ -47,6 +49,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fourcc")
     parser.add_argument("--backend", choices=["auto", "v4l2", "picamera2"])
     parser.add_argument("--feedback-timeout", type=float)
+    parser.add_argument("--gripper-pose-timeout", type=float)
     parser.add_argument("--max-frames", type=int, default=0)
     parser.add_argument("--quiet", action="store_true")
     return parser
@@ -69,12 +72,15 @@ def main() -> int:
         args.front_coordinates or hardware.get("cameras.front.coordinate_geometry_file"))
     gripper_calibration = resolve_project_path(
         args.gripper_calibration or hardware.get("cameras.gripper.calibration_file"))
-    gripper_coordinates = resolve_project_path(
-        args.gripper_coordinates or hardware.get("cameras.gripper.coordinate_geometry_file"))
+    gripper_hand_eye = resolve_project_path(
+        args.gripper_hand_eye or hardware.get("cameras.gripper.hand_eye_calibration_file"))
     serial_port = args.serial_port or str(hardware.get("lower_controller.device"))
     serial_baud = args.serial_baud or int(hardware.get("lower_controller.baudrate"))
     feedback_timeout = args.feedback_timeout or float(hardware.get("safety.heartbeat_timeout_s"))
-    if args.max_frames < 0 or serial_baud <= 0 or feedback_timeout <= 0:
+    gripper_pose_timeout = args.gripper_pose_timeout or float(
+        hardware.get("safety.gripper_pose_timeout_s"))
+    if (args.max_frames < 0 or serial_baud <= 0 or feedback_timeout <= 0 or
+            gripper_pose_timeout <= 0):
         raise SystemExit("serial baud and feedback timeout must be positive")
 
     def camera_config(role: str) -> CameraConfig:
@@ -108,7 +114,9 @@ def main() -> int:
         front_calibration, front_coordinates, require_field_tags=True)
     gripper_pipeline = VisionPipeline.from_paths(
         VisionPipelinePaths.project_defaults(ROOT),
-        gripper_calibration, gripper_coordinates, require_field_tags=False)
+        gripper_calibration, None, require_field_tags=False,
+        allow_dynamic_camera_transform=True)
+    transform_gripper_camera = load_gripper_from_camera(gripper_hand_eye)
     controller = CompetitionController.from_json(args.rules, args.strategy)
     endpoint = RaspberryPiVisionEndpoint()
     communication = PiCommunicationRuntime(
@@ -116,7 +124,9 @@ def main() -> int:
     runtime = CompetitionRuntime(
         front_pipeline, controller, communication, hardware,
         require_hardware_ready=True, feedback_timeout_s=feedback_timeout,
-        gripper_pipeline=gripper_pipeline)
+        gripper_pipeline=gripper_pipeline,
+        transform_gripper_camera=transform_gripper_camera,
+        gripper_pose_timeout_s=gripper_pose_timeout)
     front_camera = camera_config("front")
     gripper_camera = camera_config("gripper")
     processed = 0

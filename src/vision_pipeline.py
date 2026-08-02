@@ -11,6 +11,8 @@ from .black_line_detector import BlackLineDetector
 from .block_detector_robust import BlockDetector
 from .block_pose_estimator import BlockPoseEstimator
 from .coordinate_transform import CoordinateTransformer
+from .camera_calibration import CalibrationResult
+from .coordinate_transform import RigidTransform
 from .gripper_alignment import GripperAligner
 from .image_source import FramePacket
 from .stream_health import StreamHealth, StreamHealthMonitor, StreamStatus
@@ -62,7 +64,8 @@ class VisionPipeline:
                  target_selector: TargetSelector | None = None,
                  gripper_aligner: GripperAligner | None = None,
                  placement_locator: PlacementTagLocator | None = None,
-                 block_pose_estimator: BlockPoseEstimator | None = None) -> None:
+                 block_pose_estimator: BlockPoseEstimator | None = None,
+                 dynamic_camera_transform_required: bool = False) -> None:
         self.apriltags = apriltags
         self.blocks = blocks
         self.line = line
@@ -74,17 +77,22 @@ class VisionPipeline:
         self.gripper_aligner = gripper_aligner
         self.placement_locator = placement_locator
         self.block_pose_estimator = block_pose_estimator
+        self.dynamic_camera_transform_required = dynamic_camera_transform_required
 
     @classmethod
     def from_paths(cls, paths: VisionPipelinePaths,
                    calibration_path: str | Path | None = None,
                    coordinate_geometry_path: str | Path | None = None,
-                   require_field_tags: bool = True) -> "VisionPipeline":
+                   require_field_tags: bool = True,
+                   allow_dynamic_camera_transform: bool = False) -> "VisionPipeline":
         apriltags = AprilTagDetector.from_json(paths.apriltag_config, calibration_path)
         coordinates = None
         if calibration_path and coordinate_geometry_path:
             coordinates = CoordinateTransformer.from_json(
                 calibration_path, coordinate_geometry_path, require_field_tags)
+        elif calibration_path and allow_dynamic_camera_transform:
+            coordinates = CoordinateTransformer(
+                CalibrationResult.load_json(calibration_path), RigidTransform.identity(), {})
         block_pose_estimator = BlockPoseEstimator(coordinates) if coordinates is not None else None
         return cls(
             apriltags, BlockDetector.from_json(paths.block_config),
@@ -96,6 +104,7 @@ class VisionPipeline:
             GripperAligner.from_json(paths.gripper_alignment_config),
             PlacementTagLocator.from_json(paths.placement_slots_config),
             block_pose_estimator,
+            allow_dynamic_camera_transform,
         )
 
     def reset(self) -> None:
@@ -104,7 +113,8 @@ class VisionPipeline:
 
     def process(self, packet: FramePacket, mode: VisionMode | str = VisionMode.DEBUG_ALL,
                 desired_block_color: str | None = None,
-                occupied_slot_ids: tuple[str, ...] = ()) -> VisionOutput:
+                occupied_slot_ids: tuple[str, ...] = (),
+                transform_robot_camera: RigidTransform | None = None) -> VisionOutput:
         started = perf_counter()
         selected_mode = VisionMode(mode)
         errors: list[str] = []
@@ -150,7 +160,8 @@ class VisionPipeline:
             try:
                 raw = self.blocks.process(packet.image)
                 temporal = self.block_tracker.update(observations_from_blocks(raw.detections))
-                block_outputs = tuple(self._block_output(track, errors) for track in temporal.tracks)
+                block_outputs = tuple(self._block_output(
+                    track, errors, transform_robot_camera) for track in temporal.tracks)
                 if selected_mode in (VisionMode.GRAB_ASSIST, VisionMode.DEBUG_ALL):
                     selection = self.target_selector.select(
                         block_outputs, packet.image.shape[1], desired_block_color)
@@ -236,13 +247,16 @@ class VisionPipeline:
             reprojection_confidence,
         )
 
-    def _block_output(self, track, errors: list[str]) -> BlockOutput:
+    def _block_output(self, track, errors: list[str],
+                      transform_robot_camera: RigidTransform | None = None) -> BlockOutput:
         item = track.detection
         position = None
         grasp_point = None
         yaw_image_deg = None
-        if self.block_pose_estimator is not None and not track.predicted:
-            estimate = self.block_pose_estimator.estimate(item)
+        can_estimate = not (self.dynamic_camera_transform_required and
+                            transform_robot_camera is None)
+        if self.block_pose_estimator is not None and not track.predicted and can_estimate:
+            estimate = self.block_pose_estimator.estimate(item, transform_robot_camera)
             if estimate.valid:
                 position = estimate.center_robot_m
                 grasp_point = estimate.grasp_point_robot_m
