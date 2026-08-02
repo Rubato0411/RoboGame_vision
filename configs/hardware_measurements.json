@@ -134,10 +134,10 @@
     },
     "dual_camera_validation": {
       "usb_controller_mapping": "N/A: dual CSI; camera0=gripper, camera1=front",
-      "simultaneous_front_fps": null,
-      "simultaneous_gripper_fps": null,
-      "dropped_frame_ratio": null,
-      "continuous_test_duration_min": null
+      "simultaneous_front_fps": 30.01,
+      "simultaneous_gripper_fps": 30.01,
+      "continuous_test_duration_min": 58,
+      "dropped_frame_ratio": null
     }
   },
   "onboard_cargo": {
@@ -180,10 +180,10 @@
   "placement": {
     "verified": false,
     "building_zone_reference_tag_id": 6,
-    "slot_transforms_tag_m": null,
+    "slot_transforms_tag_m":  "configs/placement_slots.json",
     "approach_offset_m": null,
     "release_offset_m": null,
-    "layer_height_m_measured": null,
+    "layer_height_m_measured": 0.1,
     "stable_observation_roi": null
   },
   "lower_controller": {

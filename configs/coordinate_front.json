@@ -1,0 +1,96 @@
+{
+  "coordinate_convention": "T_A_B maps coordinates from frame B into frame A; distances are metres; RPY order is roll-pitch-yaw in degrees",
+  "robot_from_camera": {
+    "configured": true,
+    "translation_m": [
+      0.24,
+      0.0,
+      0.07
+    ],
+    "rpy_deg": [
+      90.0,
+      0.0,
+      90.0
+    ]
+  },
+  "field_from_tags": {
+    "1": {
+      "configured": true,
+      "translation_m": [
+        0.93,
+        0.3,
+        0.325
+      ],
+      "rpy_deg": [
+        90.0,
+        0.0,
+        0.0
+      ]
+    },
+    "2": {
+      "configured": true,
+      "translation_m": [
+        1.475,
+        -0.595,
+        0.325
+      ],
+      "rpy_deg": [
+        90.0,
+        0.0,
+        -90.0
+      ]
+    },
+    "3": {
+      "configured": true,
+      "translation_m": [
+        2.9,
+        -1.9,
+        0.325
+      ],
+      "rpy_deg": [
+        90.0,
+        0.0,
+        0.0
+      ]
+    },
+    "4": {
+      "configured": true,
+      "translation_m": [
+        4.05,
+        -2.805,
+        0.325
+      ],
+      "rpy_deg": [
+        90.0,
+        0.0,
+        -90.0
+      ]
+    },
+    "5": {
+      "configured": true,
+      "translation_m": [
+        0.93,
+        -3.7,
+        0.325
+      ],
+      "rpy_deg": [
+        90.0,
+        0.0,
+        180.0
+      ]
+    },
+    "6": {
+      "configured": true,
+      "translation_m": [
+        0.3,
+        -2.805,
+        0.325
+      ],
+      "rpy_deg": [
+        90.0,
+        0.0,
+        90.0
+      ]
+    }
+  }
+}
