@@ -18,6 +18,7 @@
     "tag_upper_edge_height_m": 0.40,
     "max_carried_blocks": 3,
     "max_carried_purple_blocks": 1,
+    "max_available_purple_blocks": 3,
     "max_scoring_buildings": 3
   }
 }

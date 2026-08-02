@@ -23,9 +23,9 @@ class FakePipeline:
         self.calls = []
 
     def process(self, packet, mode, desired_block_color=None, occupied_slot_ids=(),
-                transform_robot_camera=None):
+                transform_robot_camera=None, requested_placement_slot_id=None):
         self.calls.append((mode, desired_block_color, occupied_slot_ids,
-                           transform_robot_camera))
+                           transform_robot_camera, requested_placement_slot_id))
         return VisionOutput(
             packet.frame_id, packet.timestamp, packet.source_name, mode.value,
             StreamOutput("HEALTHY", True, 30.0, 0.0, 0, "ok"),
@@ -46,7 +46,7 @@ class CompetitionRuntimeTests(unittest.TestCase):
         packet = FramePacket(np.zeros((2, 2, 3), np.uint8), 0.0, 0, "test")
         cycle = runtime.process(packet)
         self.assertEqual(front_pipeline.calls, [])
-        self.assertEqual(gripper_pipeline.calls[0][1], "orange")
+        self.assertEqual(gripper_pipeline.calls[0][1], "purple")
         self.assertEqual(gripper_pipeline.calls[0][2], ())
         self.assertEqual(cycle.output.selected_target.track_id, 1)
 

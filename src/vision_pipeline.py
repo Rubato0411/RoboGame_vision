@@ -114,7 +114,8 @@ class VisionPipeline:
     def process(self, packet: FramePacket, mode: VisionMode | str = VisionMode.DEBUG_ALL,
                 desired_block_color: str | None = None,
                 occupied_slot_ids: tuple[str, ...] = (),
-                transform_robot_camera: RigidTransform | None = None) -> VisionOutput:
+                transform_robot_camera: RigidTransform | None = None,
+                requested_placement_slot_id: str | None = None) -> VisionOutput:
         started = perf_counter()
         selected_mode = VisionMode(mode)
         errors: list[str] = []
@@ -214,7 +215,8 @@ class VisionPipeline:
             try:
                 target = self.placement_locator.select_next(
                     [track.detection for track in stable_tags if not track.predicted],
-                    self.coordinates.transform_robot_camera, occupied_slot_ids)
+                    self.coordinates.transform_robot_camera, occupied_slot_ids,
+                    requested_placement_slot_id)
                 placement_output = PlacementOutput(
                     target.valid, target.slot_id, target.reference_tag_id,
                     target.position_robot_m, target.rpy_robot_deg, target.layer, target.reason)

@@ -96,6 +96,7 @@ python tools\simulate_communication.py `
   "lower_controller_healthy": true,
   "fault_detected": false,
   "at_material_zone": false,
+  "at_material_tag_id": null,
   "at_build_zone": false,
   "grasp_confirmed": false,
   "cargo_stowed_confirmed": false,
@@ -115,8 +116,17 @@ python tools\simulate_communication.py `
 `cargo_slot_id`一致，上位机才接受确认；禁止用上一动作残留的`true`推进状态机。
 
 `CompetitionCommand`包含比赛阶段、视觉模式、运动意图、夹爪意图、目标颜色、车载槽位、
-搭建槽位、比赛计时和
-安全停车标志。运动意图是语义命令，不是未经限幅的电机PWM。
+搭建槽位、材料区标签 `material_tag_id`、比赛计时和安全停车标志。运动意图是语义命令，
+不是未经限幅的电机PWM。当前材料映射为紫色Tag 3、橙色Tag 4。
+
+STM32到达材料区时应在 `RobotFeedback` 中回传：
+
+```json
+{"at_material_zone": true, "at_material_tag_id": 3}
+```
+
+`at_material_tag_id` 必须是实际到达并确认的标签ID；离开材料区后应恢复为 `null`，避免旧的
+`at_material_zone=true` 让上位机误判已经到达新目标。
 
 `communication_runtime.py`已经提供非阻塞pyserial读写、ACK、心跳和完整写入循环。实际串口名、
 波特率及超时从`hardware_measurements.json`读取。正式比赛中该控制链路应为车内有线链路；无线端

@@ -113,6 +113,7 @@ class CompetitionRuntime:
             desired_block_color=requested.desired_block_color,
             occupied_slot_ids=tuple(sorted(self.controller.occupied_slot_ids)),
             transform_robot_camera=dynamic_camera_transform,
+            requested_placement_slot_id=requested.placement_slot_id,
         )
         decision = self.controller.step(output, feedback, now)
         self.last_output = output

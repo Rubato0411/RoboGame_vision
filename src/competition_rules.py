@@ -27,6 +27,7 @@ class CompetitionRules:
     tag_upper_edge_height_m: float = 0.40
     max_carried_blocks: int = 3
     max_carried_purple_blocks: int = 1
+    max_available_purple_blocks: int = 3
     max_scoring_buildings: int = 3
 
     @classmethod
@@ -58,6 +59,8 @@ class CompetitionRules:
             raise ValueError("max_carried_blocks must be at least one")
         if not 0 <= self.max_carried_purple_blocks <= self.max_carried_blocks:
             raise ValueError("purple carrying limit must fit the total carrying limit")
+        if self.max_available_purple_blocks < self.max_carried_purple_blocks:
+            raise ValueError("available purple blocks cannot be below carrying limit")
         if self.max_scoring_buildings < 1:
             raise ValueError("max_scoring_buildings must be at least one")
 
@@ -91,4 +94,3 @@ class CompetitionRules:
     def total_building_score(self, buildings: Iterable[Iterable[str]]) -> float:
         scores = sorted((self.building_score(value) for value in buildings), reverse=True)
         return float(sum(scores[:self.max_scoring_buildings]))
-

@@ -160,6 +160,10 @@ last_valid_receive_time
 | `SEARCH_PLACE` | 执行双方约定的低速放置搜索动作 |
 | `ALIGN_TO_PLACE` | 按放置目标低速对准 |
 
+`GO_TO_MATERIAL` 必须同时读取 `CompetitionCommand.material_tag_id`：Tag 3代表紫色材料区，
+Tag 4代表橙色材料区。到达后反馈 `at_material_zone=true` 和匹配的
+`at_material_tag_id`；不能只保留一个不区分颜色的“到达材料区”布尔量。
+
 这些是语义意图，不是 PWM，也不是 `vx/vy/omega`。采用当前架构时，由 STM32
 负责限速、轨迹、运动学和闭环。若电控要求树莓派直接给速度，必须另行冻结
 `vx_mps/vy_mps/omega_radps` 消息，不能自行猜测单位或范围。

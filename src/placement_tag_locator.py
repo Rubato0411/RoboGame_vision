@@ -83,8 +83,13 @@ class PlacementTagLocator:
 
     def select_next(self, detections: Iterable[AprilTagDetection],
                     transform_robot_camera: RigidTransform,
-                    occupied_slot_ids: Iterable[str] = ()) -> PlacementTarget:
+                    occupied_slot_ids: Iterable[str] = (),
+                    requested_slot_id: str | None = None) -> PlacementTarget:
         targets = self.locate(detections, transform_robot_camera, occupied_slot_ids)
+        if requested_slot_id is not None:
+            return next((item for item in targets if item.slot_id == requested_slot_id),
+                        PlacementTarget(False, requested_slot_id, None, None, None, None,
+                                        "requested platform level is unavailable or tag is not visible"))
         return targets[0] if targets else PlacementTarget(
             False, None, None, None, None, None,
             "no visible configured tag with an unoccupied slot")

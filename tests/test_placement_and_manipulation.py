@@ -45,6 +45,20 @@ class PlacementAndManipulationTests(unittest.TestCase):
         self.assertEqual([item.slot_id for item in targets], [
             "building_1_layer_1", "building_1_layer_2", "building_2_layer_1"])
 
+    def test_requested_virtual_level_overrides_default_priority(self):
+        slots = [
+            PlacementSlot("building_1_level_1", 6, RigidTransform.identity(), 1, 0),
+            PlacementSlot("building_1_level_2", 6,
+                          RigidTransform.from_xyz_rpy([0, .1, 0], [0, 0, 0]), 2, 0),
+        ]
+        locator = PlacementTagLocator(slots)
+        detection = AprilTagDetection(6, ((0, 0),)*4, (0, 0), 1, 1,
+                                      np.zeros(3), np.ones(3), 1, .2)
+        target = locator.select_next(
+            [detection], RigidTransform.identity(), requested_slot_id="building_1_level_2")
+        self.assertTrue(target.valid)
+        self.assertEqual(target.slot_id, "building_1_level_2")
+
     def test_grasp_requires_sensor_and_visual_motion(self):
         verifier = ManipulationVerifier()
         incomplete = verifier.verify(ManipulationPhase.VERIFY_GRASP,

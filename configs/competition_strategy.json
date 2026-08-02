@@ -1,8 +1,14 @@
 {
   "description": "Hardware-independent conservative strategy. Revisit after gripper and chassis testing.",
   "strategy": {
-    "orange_blocks_before_roof": 2,
     "trip_capacity": 3,
+    "purple_material_tag_id": 3,
+    "orange_material_tag_id": 4,
+    "purple_absence_confirm_s": 3.0,
+    "roof_when_remaining_s": 90.0,
+    "min_orange_layers_before_roof": 1,
+    "max_orange_layers_before_forced_roof": 5,
+    "max_buildings": 3,
     "cargo_slot_ids": [
       "cargo_right",
       "cargo_left",

@@ -26,7 +26,7 @@ def synthetic_vision(timestamp: float, *, target=False, aligned=False,
             target, 1 if target else None, 0.0, 0.0, 0.0,
             aligned, .9 if target else 0.0, False, "simulated"),
         placement=(PlacementOutput(
-            True, "building_1_layer_1", 1, (0.5, 0.0, 0.05),
+            True, "building_1_level_1", 6, (0.5, 0.0, 0.05),
             (0.0, 0.0, 0.0), 1, "simulated") if placement else PlacementOutput()),
     )
 
@@ -47,6 +47,8 @@ def main() -> int:
         ("block_1_grasped", 0.3, None, RobotFeedback(grasp_confirmed=True)),
         ("block_1_stowed", 0.4, None, RobotFeedback(
             cargo_stowed_confirmed=True, cargo_stowed_slot_id="cargo_right")),
+        ("arrive_orange_material", 0.45, None, RobotFeedback(
+            at_material_zone=True, at_material_tag_id=4)),
         ("block_2_aligned", 0.5, synthetic_vision(.5, target=True, aligned=True), RobotFeedback()),
         ("block_2_grasped", 0.6, None, RobotFeedback(grasp_confirmed=True)),
         ("block_2_stowed", 0.7, None, RobotFeedback(
@@ -57,7 +59,7 @@ def main() -> int:
             cargo_stowed_confirmed=True, cargo_stowed_slot_id="cargo_center")),
         ("arrive_build", 1.1, None, RobotFeedback(at_build_zone=True)),
         ("cargo_retrieved", 1.2, None, RobotFeedback(
-            cargo_retrieved_confirmed=True, cargo_retrieved_slot_id="cargo_right")),
+            cargo_retrieved_confirmed=True, cargo_retrieved_slot_id="cargo_left")),
         ("placement_visible", 1.3, synthetic_vision(1.3, placement=True), RobotFeedback()),
         ("place_pose_reached", 1.4, None, RobotFeedback(place_pose_reached=True)),
         ("released", 1.5, None, RobotFeedback(
