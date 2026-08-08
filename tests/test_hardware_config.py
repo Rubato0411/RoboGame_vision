@@ -15,7 +15,8 @@ class HardwareConfigTests(unittest.TestCase):
             ROOT / "configs" / "hardware_measurements.json")
         result = config.readiness()
         self.assertFalse(result.ready)
-        self.assertIn("cameras.gripper.calibration_file", result.missing)
+        self.assertNotIn("cameras.gripper.calibration_file", result.missing)
+        self.assertIn("cameras.front.actual_width_px", result.missing)
         self.assertIn("cameras.gripper.hand_eye_calibration_file", result.missing)
         self.assertIn("safety.gripper_pose_timeout_s", result.missing)
         with self.assertRaises(RuntimeError):
